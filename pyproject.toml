@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build >= 0.11.23, <0.12.0"]
+build-backend = "uv_build"
 
 [project]
 name = "stix2-utils"
-dynamic = ["version"]
+version = "0.0.1"
 requires-python = ">= 3.13"
 description = "Utility library for validating and creating stix2 entities and patterns"
 readme = "README.md"
@@ -21,8 +21,9 @@ dev = [
 [project.scripts]
 replicator = "taxii_replicator.__main__:main"
 
-[tool.uv]
-exclude-newer = "30 days"
+[tool.uv.build-backend]
+module-root = ""
+module-name = "stix2utils"
 
 [tool.coverage.run]
 omit = [

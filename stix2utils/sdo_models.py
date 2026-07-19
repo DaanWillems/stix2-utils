@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
@@ -29,6 +29,7 @@ class STIXDomainObject(BaseModel):
     external_references: list[dict] | None = None
     object_marking_refs: Annotated[list[MarkingRef], Field(min_length=1)] | None = None
     granular_markings: list[dict] | None = None
+    extensions: dict[str, Any] | None = None
 
     @model_validator(mode="after")
     def _id_prefix_matches_type(self) -> STIXDomainObject:
@@ -91,7 +92,7 @@ class Identity(STIXDomainObject):
 
 class Indicator(STIXDomainObject):
     type: Literal["indicator"] = "indicator"
-    indicator_types: Annotated[list[str], Field(min_length=1)]
+    indicator_types: Annotated[list[str], Field(min_length=1)] | None = None
     pattern: str
     pattern_type: str
     valid_from: str
