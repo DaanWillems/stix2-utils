@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stix2-utils"
+dynamic = ["version"]
+requires-python = ">= 3.13"
+description = "Utility library for validating and creating stix2 entities and patterns"
+readme = "README.md"
+authors = [
+    { name = "Daan Willems", email = "daan,wuillems@ncsc.nl" }
+]
+dependencies = [
+    "pydantic"
+]
+[project.optional-dependencies]
+dev = [
+    "pytest"
+]
+[project.scripts]
+replicator = "taxii_replicator.__main__:main"
+
+[tool.uv]
+exclude-newer = "30 days"
+
+[tool.coverage.run]
+omit = [
+]
+
+[tool.coverage.report]
+skip_empty = true
+
+[tool.semantic_release.remote]
+type = "gitlab"
+domain = "gitnmp.arp.ncsc.nl"
+
+[tool.semantic_release.branches.main]
+match = "(main|master)"
+prerelease = "false"
+
+[tool.semantic_release.branches."OCTI-"]
+match = "OCTI-\\d+"
+prerelease = "true"
+prerelease_token = "rc"
+
+[tool.setuptools.packages]
+find = { }
+
+[tool.pytest.ini_options]
+pythonpath = "."
+env = [
+    "ENV = test",
+]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
+
+[tool.ruff]
+exclude = [
+]
+line-length = 140
+indent-width = 4
+
+[tool.ruff.format]
+line-ending = "lf"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/fixtures/**.py" = ["PT022"]  # Inversed teardown, ignore for this specific case only
+"tests/*" = [
+    "ANN",      # Non annotations are fine in tests.
+    "S101",     # We actually want 'assert' in tests.
+    "S106",     # Dummy strings as passswords are fine in tests.
+]
+
+
+[tool.ruff.lint]
+ignore = ["ANN002", "ANN003", "FIX002", "COM812", "UP040"]
+select = ["E", "F", "W", "ANN", "I", "N", "UP", "YTT", "S", "BLE", "FBT", "B", "A", "COM", "C4", "T10", "EM", "EXE", "ISC", "ICN", "LOG", "G", "INP", "PIE", "T20", "PYI", "PT", "RSE", "RET", "SLF", "SIM", "TID", "TCH", "INT", "ARG", "PTH", "TD", "FIX", "ERA", "R", "TRY", "FLY", "PERF", "FURB", "RUF"]
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = ["pydantic.BaseModel"]
