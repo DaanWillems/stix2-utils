@@ -1,6 +1,51 @@
 from stix2utils.validator import STIX2Validator
 
 
+def test_none_value() -> None:
+    validator = STIX2Validator()
+    validation_result = validator.validate_entity(
+        None
+    )
+
+    assert not validation_result.success
+    assert len(validation_result.errors) == 1
+    assert validation_result.errors[0].description == "(root): Input should be a valid dictionary or object to extract fields from [model_attributes_type]"
+
+
+def test_empty_dict() -> None:
+    validator = STIX2Validator()
+    validation_result = validator.validate_entity(
+        {}
+    )
+
+    assert not validation_result.success
+    assert len(validation_result.errors) == 1
+    assert validation_result.errors[0].description == "(root): Unable to extract tag using discriminator 'type' [union_tag_not_found]"
+
+
+def test_missing_required_field_type() -> None:
+    validator = STIX2Validator()
+    validation_result = validator.validate_entity(
+        {
+            "id": "indicator--8e2e2d2b-17d4-4cbf-938f-98ee46b3cd3f",
+            "spec_version": "2.1",
+            "created": "2024-01-15T08:00:00.000Z",
+            "modified": "2024-01-15T08:00:00.000Z",
+            "name": "Malicious IP Address",
+            "description": "This IP address has been observed in C2 communications.",
+            "indicator_types": ["malicious-activity"],
+            "pattern": "[ipv4-addr:value = '198.51.100.23']",
+            "pattern_type": "stix",
+            "pattern_version": "2.1",
+            "valid_from": "2024-01-15T08:00:00.000Z",
+        }
+    )
+
+    assert not validation_result.success
+    assert len(validation_result.errors) == 1
+    assert validation_result.errors[0].description == "(root): Unable to extract tag using discriminator 'type' [union_tag_not_found]"
+
+
 def test_missing_required_field_id() -> None:
     validator = STIX2Validator()
     validation_result = validator.validate_entity(

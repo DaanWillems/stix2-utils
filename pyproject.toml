@@ -6,10 +6,10 @@ build-backend = "uv_build"
 name = "stix2-utils"
 version = "0.0.1"
 requires-python = ">= 3.13"
-description = "Utility library for validating and creating stix2 entities and patterns"
+description = "Utility library for validating stix2 entities and patterns"
 readme = "README.md"
 authors = [
-    { name = "Daan Willems", email = "daan,wuillems@ncsc.nl" }
+    { name = "Daan Willems", email = "daan@daan.nl" }
 ]
 dependencies = [
     "pydantic"

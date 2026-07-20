@@ -2,12 +2,49 @@ from typing import Annotated
 
 from pydantic import Field, TypeAdapter
 
-from stix2utils.sco_models import URL, Artifact, AutonomousSystem, Directory, DomainName, EmailAddress, EmailMessage, File, IPv4Address, IPv6Address, MACAddress, Mutex, NetworkTraffic, Process, Software, UserAccount, WindowsRegistryKey, X509Certificate
-from stix2utils.sdo_models import AttackPattern, Campaign, CourseOfAction, Grouping, Identity, Indicator, Infrastructure, IntrusionSet, Location, Malware, MalwareAnalysis, Note, ObservedData, Opinion, Report, ThreatActor, Tool, Vulnerability
+from stix2utils.sco_models import (
+    URL,
+    Artifact,
+    AutonomousSystem,
+    Directory,
+    DomainName,
+    EmailAddress,
+    EmailMessage,
+    File,
+    IPv4Address,
+    IPv6Address,
+    MACAddress,
+    Mutex,
+    NetworkTraffic,
+    Process,
+    Software,
+    UserAccount,
+    WindowsRegistryKey,
+    X509Certificate,
+)
+from stix2utils.sdo_models import (
+    AttackPattern,
+    Campaign,
+    CourseOfAction,
+    Grouping,
+    Identity,
+    Indicator,
+    Infrastructure,
+    IntrusionSet,
+    Location,
+    Malware,
+    MalwareAnalysis,
+    Note,
+    ObservedData,
+    Opinion,
+    Report,
+    ThreatActor,
+    Tool,
+    Vulnerability,
+)
 from stix2utils.sro_models import Relationship, Sighting
 
-
-SDO_SCO = Annotated[
+SDO_SCO_SRO = Annotated[
     AttackPattern
     | Campaign
     | CourseOfAction
@@ -49,4 +86,4 @@ SDO_SCO = Annotated[
     Field(discriminator="type"),
 ]
 
-stix_adapter = TypeAdapter(SDO_SCO)
+stix_adapter = TypeAdapter(SDO_SCO_SRO)
