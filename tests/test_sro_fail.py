@@ -36,9 +36,7 @@ def test_relationship_missing_relationship_type() -> None:
 
     assert not validation_result.success
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == (
-        "relationship.relationship_type: Field required [missing]"
-    )
+    assert validation_result.errors[0].description == ("relationship.relationship_type: Field required [missing]")
 
 
 def test_relationship_missing_source_ref() -> None:
@@ -57,9 +55,7 @@ def test_relationship_missing_source_ref() -> None:
 
     assert not validation_result.success
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == (
-        "relationship.source_ref: Field required [missing]"
-    )
+    assert validation_result.errors[0].description == ("relationship.source_ref: Field required [missing]")
 
 
 def test_relationship_missing_target_ref() -> None:
@@ -78,9 +74,7 @@ def test_relationship_missing_target_ref() -> None:
 
     assert not validation_result.success
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == (
-        "relationship.target_ref: Field required [missing]"
-    )
+    assert validation_result.errors[0].description == ("relationship.target_ref: Field required [missing]")
 
 
 def test_relationship_disallowed_combination() -> None:
@@ -127,8 +121,7 @@ def test_relationship_undefined_source_for_type() -> None:
     assert not validation_result.success
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
-        "relationship: Value error, 'note' is not a defined source for the 'uses' "
-        "relationship [value_error]"
+        "relationship: Value error, 'note' is not a defined source for the 'uses' relationship [value_error]"
     )
 
 
@@ -175,8 +168,7 @@ def test_relationship_forbidden_target_endpoint() -> None:
     assert not validation_result.success
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
-        "relationship: Value error, target_ref must reference an SDO or SCO, not a "
-        "'marking-definition' object [value_error]"
+        "relationship: Value error, target_ref must reference an SDO or SCO, not a 'marking-definition' object [value_error]"
     )
 
 
@@ -199,8 +191,7 @@ def test_relationship_forbidden_source_endpoint() -> None:
     assert not validation_result.success
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
-        "relationship: Value error, source_ref must reference an SDO or SCO, not a "
-        "'relationship' object [value_error]"
+        "relationship: Value error, source_ref must reference an SDO or SCO, not a 'relationship' object [value_error]"
     )
 
 
@@ -223,9 +214,7 @@ def test_relationship_stop_time_before_start_time() -> None:
 
     assert not validation_result.success
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == (
-        "relationship: Value error, stop_time MUST be later than start_time [value_error]"
-    )
+    assert validation_result.errors[0].description == ("relationship: Value error, stop_time MUST be later than start_time [value_error]")
 
 
 def test_relationship_bad_relationship_type_format() -> None:
@@ -247,8 +236,7 @@ def test_relationship_bad_relationship_type_format() -> None:
     assert not validation_result.success
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
-        "relationship.relationship_type: String should match pattern "
-        "'^[a-z0-9]+(-[a-z0-9]+)*$' [string_pattern_mismatch]"
+        "relationship.relationship_type: String should match pattern '^[a-z0-9]+(-[a-z0-9]+)*$' [string_pattern_mismatch]"
     )
 
 
@@ -266,9 +254,7 @@ def test_sighting_missing_sighting_of_ref() -> None:
 
     assert not validation_result.success
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == (
-        "sighting.sighting_of_ref: Field required [missing]"
-    )
+    assert validation_result.errors[0].description == ("sighting.sighting_of_ref: Field required [missing]")
 
 
 def test_sighting_of_ref_must_be_sdo() -> None:
@@ -288,8 +274,7 @@ def test_sighting_of_ref_must_be_sdo() -> None:
     assert not validation_result.success
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
-        "sighting: Value error, sighting_of_ref must reference an SDO, not a "
-        "'ipv4-addr' object [value_error]"
+        "sighting: Value error, sighting_of_ref must reference an SDO, not a 'ipv4-addr' object [value_error]"
     )
 
 
@@ -304,9 +289,7 @@ def test_sighting_bad_observed_data_ref_type() -> None:
             "created": "2024-01-15T08:00:00.000Z",
             "modified": "2024-01-15T08:00:00.000Z",
             "sighting_of_ref": "indicator--8e2e2d2b-17d4-4cbf-938f-98ee46b3cd3f",
-            "observed_data_refs": [
-                "malware--31b940d4-6f7f-459a-80ea-9c1f17b5891b"
-            ],
+            "observed_data_refs": ["malware--31b940d4-6f7f-459a-80ea-9c1f17b5891b"],
         }
     )
 
@@ -330,9 +313,7 @@ def test_sighting_bad_where_sighted_ref_type() -> None:
             "created": "2024-01-15T08:00:00.000Z",
             "modified": "2024-01-15T08:00:00.000Z",
             "sighting_of_ref": "indicator--8e2e2d2b-17d4-4cbf-938f-98ee46b3cd3f",
-            "where_sighted_refs": [
-                "malware--31b940d4-6f7f-459a-80ea-9c1f17b5891b"
-            ],
+            "where_sighted_refs": ["malware--31b940d4-6f7f-459a-80ea-9c1f17b5891b"],
         }
     )
 
@@ -361,9 +342,7 @@ def test_sighting_count_out_of_range() -> None:
 
     assert not validation_result.success
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == (
-        "sighting.count: Input should be less than or equal to 999999999 [less_than_equal]"
-    )
+    assert validation_result.errors[0].description == ("sighting.count: Input should be less than or equal to 999999999 [less_than_equal]")
 
 
 def test_sighting_last_seen_before_first_seen() -> None:
@@ -384,6 +363,5 @@ def test_sighting_last_seen_before_first_seen() -> None:
     assert not validation_result.success
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
-        "sighting: Value error, last_seen MUST be greater than or equal to first_seen "
-        "[value_error]"
+        "sighting: Value error, last_seen MUST be greater than or equal to first_seen [value_error]"
     )

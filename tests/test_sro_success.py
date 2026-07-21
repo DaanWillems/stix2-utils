@@ -170,12 +170,8 @@ def test_sighting_full() -> None:
             "last_seen": "2024-01-12T19:00:00.000Z",
             "count": 50,
             "sighting_of_ref": "indicator--8e2e2d2b-17d4-4cbf-938f-98ee46b3cd3f",
-            "observed_data_refs": [
-                "observed-data--b67d30ff-02ac-498a-92f9-32f845f448cf"
-            ],
-            "where_sighted_refs": [
-                "identity--b67d30ff-02ac-498a-92f9-32f845f448ff"
-            ],
+            "observed_data_refs": ["observed-data--b67d30ff-02ac-498a-92f9-32f845f448cf"],
+            "where_sighted_refs": ["identity--b67d30ff-02ac-498a-92f9-32f845f448ff"],
             "summary": False,
         }
     )
@@ -195,9 +191,7 @@ def test_sighting_where_sighted_location() -> None:
             "created": "2024-01-15T08:00:00.000Z",
             "modified": "2024-01-15T08:00:00.000Z",
             "sighting_of_ref": "malware--31b940d4-6f7f-459a-80ea-9c1f17b5891b",
-            "where_sighted_refs": [
-                "location--a6e9345f-5a15-4c29-8bb3-7dcc5d168d64"
-            ],
+            "where_sighted_refs": ["location--a6e9345f-5a15-4c29-8bb3-7dcc5d168d64"],
         }
     )
 

@@ -113,6 +113,7 @@ class Infrastructure(STIXDomainObject):
     first_seen: Timestamp | None = None
     last_seen: Timestamp | None = None
 
+
 class IntrusionSet(STIXDomainObject):
     type: Literal["intrusion-set"] = "intrusion-set"
     name: str

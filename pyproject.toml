@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "stix2-utils"
-version = "0.0.1"
+version = "0.0.2"
 requires-python = ">= 3.13"
 description = "Utility library for validating stix2 entities and patterns"
 readme = "README.md"
@@ -18,8 +18,9 @@ dependencies = [
 dev = [
     "pytest"
 ]
-[project.scripts]
-replicator = "taxii_replicator.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/DaanWillems/stix2-utils"
 
 [tool.uv.build-backend]
 module-root = ""
@@ -32,18 +33,9 @@ omit = [
 [tool.coverage.report]
 skip_empty = true
 
-[tool.semantic_release.remote]
-type = "gitlab"
-domain = "gitnmp.arp.ncsc.nl"
-
 [tool.semantic_release.branches.main]
 match = "(main|master)"
 prerelease = "false"
-
-[tool.semantic_release.branches."OCTI-"]
-match = "OCTI-\\d+"
-prerelease = "true"
-prerelease_token = "rc"
 
 [tool.setuptools.packages]
 find = { }

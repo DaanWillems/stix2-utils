@@ -57,9 +57,7 @@ def test_domain_name() -> None:
             "spec_version": "2.1",
             "id": "domain-name--3c10e93f-798e-5a26-a0c1-08156efab7f5",
             "value": "example.com",
-            "resolves_to_refs": [
-                "ipv4-addr--ff26c055-6336-5bc5-b98d-13d6226742dd"
-            ],
+            "resolves_to_refs": ["ipv4-addr--ff26c055-6336-5bc5-b98d-13d6226742dd"],
         }
     )
 
@@ -109,9 +107,7 @@ def test_file() -> None:
             "type": "file",
             "spec_version": "2.1",
             "id": "file--e277603e-1060-5ad4-9937-c26c97f1ca68",
-            "hashes": {
-                "SHA-256": "fe90a7e910cb3a4739bed9180e807e93fa70c90f25a8915476f5e4bfbac681db"
-            },
+            "hashes": {"SHA-256": "fe90a7e910cb3a4739bed9180e807e93fa70c90f25a8915476f5e4bfbac681db"},
             "size": 25536,
             "name": "foo.dll",
         }

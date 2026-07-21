@@ -35,12 +35,7 @@ def test_attack_pattern() -> None:
             "created": "2024-01-15T08:00:00.000Z",
             "modified": "2024-01-15T08:00:00.000Z",
             "name": "Spear Phishing",
-            "kill_chain_phases": [
-                {
-                    "kill_chain_name": "foo",
-                    "phase_name": "pre-attack"
-                }
-            ],
+            "kill_chain_phases": [{"kill_chain_name": "foo", "phase_name": "pre-attack"}],
             "description": "A targeted phishing attack against specific individuals.",
         }
     )

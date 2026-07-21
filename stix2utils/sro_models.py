@@ -149,18 +149,14 @@ ALLOWED_RELATIONSHIPS: dict[tuple[str, str], set[str]] = {
 # The set of relationship_type strings the specification defines. A value in
 # this set is validated against ALLOWED_RELATIONSHIPS; a value outside it is
 # treated as user-defined and permitted between any SDO/SCO.
-KNOWN_RELATIONSHIP_TYPES: frozenset[str] = frozenset(
-    rt for (_src, rt) in ALLOWED_RELATIONSHIPS
-)
+KNOWN_RELATIONSHIP_TYPES: frozenset[str] = frozenset(rt for (_src, rt) in ALLOWED_RELATIONSHIPS)
 
 
 def _prefix(ref: str) -> str:
     return ref.split("--", 1)[0]
 
 
-def check_relationship_endpoints(
-    source_ref: str, target_ref: str, relationship_type: str
-) -> str | None:
+def check_relationship_endpoints(source_ref: str, target_ref: str, relationship_type: str) -> str | None:
     """Return an error string if the (source, type, target) triple is disallowed
     by the STIX 2.1 specification, otherwise None.
 
@@ -189,10 +185,7 @@ def check_relationship_endpoints(
 
     if rt in COMMON_RELATIONSHIPS:
         if rt in _SAME_TYPE_COMMON and src != tgt:
-            return (
-                f"{rt!r} requires source and target to be the same object type, "
-                f"but got {src!r} and {tgt!r}"
-            )
+            return f"{rt!r} requires source and target to be the same object type, but got {src!r} and {tgt!r}"
         return None
 
     if rt in KNOWN_RELATIONSHIP_TYPES:
@@ -202,10 +195,7 @@ def check_relationship_endpoints(
             if allowed is None:
                 return f"{src!r} is not a defined source for the {rt!r} relationship"
             if tgt not in allowed:
-                return (
-                    f"{src} --{rt}--> {tgt} is not a permitted relationship; "
-                    f"valid targets are: {', '.join(sorted(allowed))}"
-                )
+                return f"{src} --{rt}--> {tgt} is not a permitted relationship; valid targets are: {', '.join(sorted(allowed))}"
         return None
 
     # User-defined relationship type: allowed between any SDO/SCO.
@@ -262,9 +252,7 @@ class Relationship(STIXRelationshipObject):
             msg = "stop_time MUST be later than start_time"
             raise ValueError(msg)
 
-        error = check_relationship_endpoints(
-            self.source_ref, self.target_ref, self.relationship_type
-        )
+        error = check_relationship_endpoints(self.source_ref, self.target_ref, self.relationship_type)
         if error is not None:
             raise ValueError(error)
         return self
@@ -278,9 +266,7 @@ class Sighting(STIXRelationshipObject):
     last_seen: Timestamp | None = None
     count: Annotated[int, Field(ge=0, le=999_999_999)] | None = None
     observed_data_refs: Annotated[list[ObservedDataRef], Field(min_length=1)] | None = None
-    where_sighted_refs: Annotated[
-        list[IdentityOrLocationRef], Field(min_length=1)
-    ] | None = None
+    where_sighted_refs: Annotated[list[IdentityOrLocationRef], Field(min_length=1)] | None = None
     summary: bool | None = None
 
     @model_validator(mode="after")

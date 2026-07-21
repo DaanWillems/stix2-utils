@@ -55,6 +55,7 @@ class STIXCyberObservable(BaseModel):
             raise ValueError(msg)
         return self
 
+
 class EncryptionAlgorithm(str, Enum):
     AES_256_GCM = "AES-256-GCM"
     CHACHA20_POLY1305 = "ChaCha20-Poly1305"
