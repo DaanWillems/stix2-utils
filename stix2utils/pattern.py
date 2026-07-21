@@ -221,7 +221,7 @@ class Parser:
 
         if tokens[-1].token_type == TokenType.DOT:
             tokens.pop()
-            if tokens[-1].token_type != TokenType.STR:
+            if tokens[-1].token_type != TokenType.STR and tokens[-1].token_type != TokenType.QUOTED_STR:
                 msg = "Expected a string"
                 raise RuntimeError(msg)
             value += f".{tokens.pop().original_value}"

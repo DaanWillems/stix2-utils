@@ -27,3 +27,17 @@ def test_parser_issubset():
 
     assert type(ast.right) is ValueNode
     assert ast.right.value == "198.51.100.0/24"
+
+def test_parser_sha():
+    tokens = Tokenizer().process("[file:hashes.'SHA-256' = 'aec070645fe53ee3b3763059376134f058cc337247c978add178b6ccdfb0019f']")
+    ast = Parser().process(tokens)
+    assert type(ast) is ExpressionNode
+    assert type(ast.left) is ObjectPathNode
+    assert ast.left.object_type == "file"
+    assert ast.left.path == "hashes.SHA-256"
+
+    assert ast.operator is TokenType.EQUALS
+
+    assert type(ast.right) is ValueNode
+    assert ast.right.value == "aec070645fe53ee3b3763059376134f058cc337247c978add178b6ccdfb0019f"
+
