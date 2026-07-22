@@ -244,7 +244,6 @@ class Parser:
                 | TokenType.IN
                 | TokenType.LIKE
                 | TokenType.MATCHES
-                | TokenType.WITHIN
             ):
                 pass
             case TokenType.NOT_EQUALS:
