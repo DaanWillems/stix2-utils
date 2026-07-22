@@ -57,6 +57,9 @@ class Tokenizer:
                     tokens.append(Token(token_type=TokenType.CLOSE_BRACKET, original_value=str_input.pop()))
                 case "=":
                     tokens.append(Token(token_type=TokenType.EQUALS, original_value=str_input.pop()))
+                case "!":
+                    if str_input[-2] == "=":
+                        tokens.append(Token(token_type=TokenType.NOT_EQUALS, original_value=str_input.pop() + str_input.pop()))
                 case ">":
                     if str_input[-2] == "=":
                         tokens.append(Token(token_type=TokenType.GREATER_EQ, original_value=str_input.pop() + str_input.pop()))
@@ -104,7 +107,7 @@ class Tokenizer:
                 return Token(token_type=TokenType.STR, original_value=value)
 
             match str_input[-1]:
-                case "[" | "]" | "=" | ":" | "." | ">" | "<":
+                case "[" | "]" | "=" | ":" | "." | ">" | "<" | "!":
                     return Token(token_type=TokenType.STR, original_value=value)
                 case _:
                     value += str_input.pop()
@@ -227,8 +230,29 @@ class Parser:
             value += f".{tokens.pop().original_value}"
 
         return ObjectPathNode(object_type=object_type, path=value)
+    def _process_expression(self, tokens: list[Token]) -> ExpressionNode:
+        expression = self._process_sub_expression(tokens)
+        while True:
+            match tokens[-1].token_type:
+                case (
+                    TokenType.AND
+                    | TokenType.OR
+                ):
+                    operator = tokens.pop().token_type
+                    expression = ExpressionNode(
+                        left=expression,
+                        operator=operator,
+                        right = self._process_sub_expression(tokens)
+                    )
 
-    def _process_expression(self, tokens: list[Token]) -> None:
+                case _:
+                    break
+
+        if len(tokens) < 1 or tokens[-1].token_type is not TokenType.CLOSE_BRACKET:
+            raise RuntimeError
+        return expression
+
+    def _process_sub_expression(self, tokens: list[Token]) -> None:
         left = self._process_object_path(tokens)
 
         match tokens[-1].token_type:
@@ -265,8 +289,13 @@ class Parser:
         if tokens[-1].token_type is not TokenType.OPEN_BRACKET:
             raise RuntimeError
 
+        expression = None
+
         while True:
             match tokens[-1].token_type:
                 case TokenType.OPEN_BRACKET:
                     tokens.pop()
-                    return self._process_expression(tokens)
+                    expression = self._process_expression(tokens)
+                    break
+
+        return expression

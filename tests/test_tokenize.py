@@ -7,6 +7,19 @@ def test_tokenize_unexpected_eod():
     with pytest.raises(UnexpectedEODError):
         Tokenizer().process("[network-traffic:dst_ref.type = 'ipv4-addr' AN")
 
+def test_tokenize_not_eq():
+    assert Tokenizer().process("[network-traffic:dst_ref.type != 'ipv4-addr']") == [
+        Token(token_type=TokenType.OPEN_BRACKET, original_value="["),
+        Token(token_type=TokenType.STR, original_value="network-traffic"),
+        Token(token_type=TokenType.DOUBLE_DOT, original_value=":"),
+        Token(token_type=TokenType.STR, original_value="dst_ref"),
+        Token(token_type=TokenType.DOT, original_value="."),
+        Token(token_type=TokenType.STR, original_value="type"),
+        Token(token_type=TokenType.NOT_EQUALS, original_value="!="),
+        Token(token_type=TokenType.QUOTED_STR, original_value="ipv4-addr"),
+        Token(token_type=TokenType.CLOSE_BRACKET, original_value="]")
+    ]
+
 
 def test_tokenize_weird_pattern():
     assert Tokenizer().process("xqwqw") == [Token(token_type=TokenType.STR, original_value="xqwqw")]
