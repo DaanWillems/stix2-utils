@@ -1,3 +1,4 @@
+from stix2utils.sdo_models import Indicator
 from stix2utils.validator import STIX2Validator
 
 
@@ -21,8 +22,10 @@ def test_indicator() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
+
+    assert type(validation_result.obj) is Indicator
 
 
 def test_attack_pattern() -> None:
@@ -40,7 +43,7 @@ def test_attack_pattern() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -58,7 +61,7 @@ def test_campaign() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -76,7 +79,7 @@ def test_course_of_action() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -98,7 +101,7 @@ def test_grouping() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -116,7 +119,7 @@ def test_identity() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -134,7 +137,7 @@ def test_infrastructure() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -152,7 +155,7 @@ def test_intrusion_set() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -170,7 +173,7 @@ def test_location() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -189,7 +192,7 @@ def test_malware() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -207,7 +210,7 @@ def test_malware_analysis() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -225,7 +228,7 @@ def test_note() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -245,7 +248,7 @@ def test_observed_data() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -263,7 +266,7 @@ def test_opinion() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -283,7 +286,7 @@ def test_report() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -301,7 +304,7 @@ def test_threat_actor() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -319,7 +322,7 @@ def test_tool() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -337,5 +340,5 @@ def test_vulnerability() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0

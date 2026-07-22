@@ -5,7 +5,7 @@ def test_none_value() -> None:
     validator = STIX2Validator()
     validation_result = validator.validate_entity(None)
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert (
         validation_result.errors[0].description
@@ -17,7 +17,7 @@ def test_empty_dict() -> None:
     validator = STIX2Validator()
     validation_result = validator.validate_entity({})
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "(root): Unable to extract tag using discriminator 'type' [union_tag_not_found]"
 
@@ -40,7 +40,7 @@ def test_missing_required_field_type() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "(root): Unable to extract tag using discriminator 'type' [union_tag_not_found]"
 
@@ -63,7 +63,7 @@ def test_missing_required_field_id() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "indicator.id: Field required [missing]"
 
@@ -85,7 +85,7 @@ def test_missing_required_field_id_pattern() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 2
     assert validation_result.errors[0].description == "indicator.id: Field required [missing]"
     assert validation_result.errors[1].description == "indicator.pattern: Field required [missing]"
@@ -111,7 +111,7 @@ def test_invalid_created_by_ref() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert (
         validation_result.errors[0].description
@@ -133,7 +133,7 @@ def test_id_mismatch() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert (
         validation_result.errors[0].description
@@ -155,7 +155,7 @@ def test_bad_created_timestamp() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert (
         validation_result.errors[0].description
@@ -178,7 +178,7 @@ def test_first_seen_timestamp() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
 
 
@@ -197,7 +197,7 @@ def test_bad_confidence() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert (
         validation_result.errors[0].description
@@ -220,7 +220,7 @@ def test_bad_killchain() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 2
     assert validation_result.errors[0].description == "attack-pattern.kill_chain_phases.0.kill_chain_name: Field required [missing]"
     assert (
@@ -244,7 +244,7 @@ def test_empty_listy() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert (
         validation_result.errors[0].description

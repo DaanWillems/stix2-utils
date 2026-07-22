@@ -13,7 +13,7 @@ def test_artifact() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -30,7 +30,7 @@ def test_autonomous_system() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -45,7 +45,7 @@ def test_directory() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -61,7 +61,7 @@ def test_domain_name() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -77,7 +77,7 @@ def test_email_address() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -96,7 +96,7 @@ def test_email_message() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -113,7 +113,7 @@ def test_file() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -128,7 +128,7 @@ def test_ipv4_address() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -143,7 +143,7 @@ def test_ipv6_address() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -158,7 +158,7 @@ def test_mac_address() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -173,7 +173,7 @@ def test_mutex() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -190,7 +190,7 @@ def test_network_traffic() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -208,7 +208,7 @@ def test_process() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -226,7 +226,7 @@ def test_software() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -241,7 +241,7 @@ def test_url() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -259,7 +259,7 @@ def test_user_account() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -281,7 +281,7 @@ def test_windows_registry_key() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -300,5 +300,5 @@ def test_x509_certificate() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0

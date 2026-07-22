@@ -250,6 +250,7 @@ class Parser:
 
         if len(tokens) < 1 or tokens[-1].token_type is not TokenType.CLOSE_BRACKET:
             raise RuntimeError
+        tokens.pop()
         return expression
 
     def _process_sub_expression(self, tokens: list[Token]) -> None:
@@ -292,10 +293,24 @@ class Parser:
         expression = None
 
         while True:
+            if len(tokens) == 0:
+                break
             match tokens[-1].token_type:
                 case TokenType.OPEN_BRACKET:
                     tokens.pop()
                     expression = self._process_expression(tokens)
-                    break
+                case TokenType.AND | TokenType.OR | TokenType.FOLLOWEDBY:
+                    operator = tokens.pop().token_type
+                    if tokens[-1].token_type is not TokenType.OPEN_BRACKET:
+                        raise RuntimeError
+                    else:
+                        tokens.pop()
+                    expression = ExpressionNode(
+                        left=expression,
+                        operator=operator,
+                        right = self._process_expression(tokens)
+                    )
+                case TokenType.REPEATS | TokenType.WITHIN | TokenType.START:
+                    raise RuntimeError
 
         return expression

@@ -17,7 +17,7 @@ def test_relationship() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -37,7 +37,7 @@ def test_relationship_common_related_to() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -56,7 +56,7 @@ def test_relationship_derived_from_same_type() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -76,7 +76,7 @@ def test_relationship_user_defined_type() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -96,7 +96,7 @@ def test_relationship_infrastructure_consists_of_sco() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -115,7 +115,7 @@ def test_relationship_sco_level_resolves_to() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -136,7 +136,7 @@ def test_relationship_with_time_window() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -153,7 +153,7 @@ def test_sighting() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -176,7 +176,7 @@ def test_sighting_full() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
 
 
@@ -195,5 +195,5 @@ def test_sighting_where_sighted_location() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
