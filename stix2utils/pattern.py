@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 
+from stix2utils.common import Timestamp
+
 
 class UnexpectedEODError(Exception):
     pass
@@ -166,22 +168,39 @@ class ASTNode:
 
 
 @dataclass
-class ExpressionNode:
+class ExpressionNode(ASTNode):
     left: ASTNode
     right: ASTNode
     operator: TokenType
 
 
 @dataclass
-class ObjectPathNode:
+class ObjectPathNode(ASTNode):
     object_type: str
     path: str
 
 
 @dataclass
-class ValueNode:
+class ValueNode(ASTNode):
     value: str
 
+@dataclass
+class ObservationalQualiferNode(ASTNode):
+    expression: ExpressionNode
+    pass
+
+@dataclass
+class RepeatNode(ObservationalQualiferNode):
+    repeat_times: int
+
+@dataclass
+class WithinNode(ObservationalQualiferNode):
+    seconds: int
+
+@dataclass
+class StartStopNode(ObservationalQualiferNode):
+    start: Timestamp
+    stop: Timestamp
 
 class Parser:
     def _process_object_value(self, tokens: list[Token]) -> ValueNode:
@@ -251,6 +270,37 @@ class Parser:
         if len(tokens) < 1 or tokens[-1].token_type is not TokenType.CLOSE_BRACKET:
             raise RuntimeError
         tokens.pop()
+
+        while True:
+            if len(tokens) == 0:
+                break
+            match(tokens[-1].token_type):
+                case TokenType.REPEATS:
+                    tokens.pop()
+                    value = tokens.pop().original_value
+                    expression = RepeatNode(
+                        expression=expression,
+                        repeat_times=int(value)
+                    )
+                    if tokens[-1].token_type is TokenType.TIMES:
+                        tokens.pop()
+                    else:
+                        raise RuntimeError
+                case TokenType.WITHIN:
+                    tokens.pop()
+                    value = tokens.pop().original_value
+                    expression = WithinNode(
+                        expression=expression,
+                        seconds=int(value)
+                    )
+                    if tokens[-1].token_type is TokenType.SECONDS:
+                        tokens.pop()
+                    else:
+                        raise RuntimeError
+                case _:
+                    break
+
+
         return expression
 
     def _process_sub_expression(self, tokens: list[Token]) -> None:
@@ -305,12 +355,12 @@ class Parser:
                         raise RuntimeError
                     else:
                         tokens.pop()
+
                     expression = ExpressionNode(
                         left=expression,
                         operator=operator,
                         right = self._process_expression(tokens)
                     )
-                case TokenType.REPEATS | TokenType.WITHIN | TokenType.START:
-                    raise RuntimeError
+
 
         return expression
