@@ -2,6 +2,7 @@ from typing import Annotated
 
 from pydantic import Field, TypeAdapter
 
+from stix2utils.marking import MarkingDefinition
 from stix2utils.sco_models import (
     URL,
     Artifact,
@@ -82,7 +83,8 @@ SDO_SCO_SRO = Annotated[
     | WindowsRegistryKey
     | X509Certificate
     | Relationship
-    | Sighting,
+    | Sighting
+    | MarkingDefinition,
     Field(discriminator="type"),
 ]
 
