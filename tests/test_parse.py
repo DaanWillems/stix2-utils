@@ -30,7 +30,7 @@ def read_node(node):
     return values
 
 def test_parser_extract_single_match_observables():
-    tokens = Tokenizer().process("[network-traffic:dst_ref.type = 'ipv4'] AND [network-traffic:dst_ref.value = '1.1.1.1'] OR [network-traffic:dst_ref.value = '2.2.2.2']")
+    tokens = Tokenizer().process("[network-traffic:dst_ref.type = 'ipv4'] OR [network-traffic:dst_ref.value = '1.1.1.1'] AND [network-traffic:dst_ref.value = '2.2.2.2']")
     ast = Parser().process(tokens)
 
     assert read_node(ast) == [
@@ -75,6 +75,11 @@ def test_parser_sha():
 
     assert type(ast.right) is ValueNode
     assert ast.right.value == "aec070645fe53ee3b3763059376134f058cc337247c978add178b6ccdfb0019f"
+
+def test_parser_parenthesis():
+    tokens = Tokenizer().process("([file:hashes.'SHA-256' = 'aec070645fe53ee3b3763059376134f058cc337247c978add178b6ccdfb0019f'])")
+    ast = Parser().process(tokens)
+    assert ast
 
 def test_parser_followedby():
     tokens = Tokenizer().process("[ network-traffic:src_ref.value = '203.0.113.10'] FOLLOWEDBY [network-traffic:dst_ref.value != '198.51.100.58' ]")
