@@ -173,6 +173,9 @@ class ExpressionNode(ASTNode):
     right: ASTNode
     operator: TokenType
 
+@dataclass
+class ParenthesisNode(ASTNode):
+    expression: ExpressionNode
 
 @dataclass
 class ObjectPathNode(ASTNode):
@@ -249,6 +252,10 @@ class Parser:
             value += f".{tokens.pop().original_value}"
 
         return ObjectPathNode(object_type=object_type, path=value)
+
+    def _process_parenthesis(self, tokens: list[Token]) -> ExpressionNode:
+        return ParenthesisNode()
+
     def _process_expression(self, tokens: list[Token]) -> ExpressionNode:
         expression = self._process_sub_expression(tokens)
         while True:
@@ -346,6 +353,9 @@ class Parser:
             if len(tokens) == 0:
                 break
             match tokens[-1].token_type:
+                case TokenType.OPEN_BRACE:
+                    tokens.pop()
+                    expression = self._process_parenthesis(tokens)
                 case TokenType.OPEN_BRACKET:
                     tokens.pop()
                     expression = self._process_expression(tokens)
