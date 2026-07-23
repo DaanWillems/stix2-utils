@@ -157,12 +157,5 @@ def test_parser_and_or():
 
 
 def test_parser_observation_expression_qualifier():
-    tokens = Tokenizer().process("[file:hashes.MD5 = '79054025255fb1a26e4bc422aef54eb4']")
-    ast = Parser().process(tokens)
-    print(ast)
-
-
-# def test_parser_observation_expression_qualifier():
-#     tokens = Tokenizer().process("[network-traffic:dst_ref.value = 'example.com'] AND [network-traffic:dst_ref.value = 'example.com'] REPEATS 5 TIMES WITHIN 1800 SECONDS")
-#     ast = Parser().process(tokens)
-#     print(ast)
+    tokens = Tokenizer().process("[network-traffic:dst_ref.value = 'example.com'] AND [network-traffic:dst_ref.value = 'example.com'] REPEATS 5 TIMES WITHIN 1800 SECONDS")
+    assert Parser().process(tokens)
