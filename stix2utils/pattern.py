@@ -173,9 +173,6 @@ class ExpressionNode(ASTNode):
     right: ASTNode
     operator: TokenType
 
-@dataclass
-class ParenthesisNode(ASTNode):
-    expression: ExpressionNode
 
 @dataclass
 class ObjectPathNode(ASTNode):
@@ -252,10 +249,7 @@ class Parser:
             value += f".{tokens.pop().original_value}"
 
         return ObjectPathNode(object_type=object_type, path=value)
-
-    def _process_parenthesis(self, tokens: list[Token]) -> ExpressionNode:
-        return ParenthesisNode()
-
+    
     def _process_expression(self, tokens: list[Token]) -> ExpressionNode:
         expression = self._process_sub_expression(tokens)
         while True:
@@ -310,7 +304,7 @@ class Parser:
 
         return expression
 
-    def _process_sub_expression(self, tokens: list[Token]) -> None:
+    def _process_sub_expression(self, tokens: list[Token]) -> ExpressionNode:
         left = self._process_object_path(tokens)
 
         match tokens[-1].token_type:
@@ -340,7 +334,31 @@ class Parser:
 
         return ExpressionNode(left=left, operator=operator, right=right)
 
-    def process(self, tokens: list[Token]) -> None:
+    def _self
+
+    def _parse_or(self, tokens):
+        node = self._parse_and(tokens)
+        while tokens and tokens[-1].token_type is TokenType.OR:
+            tokens.pop()
+            node = ExpressionNode(node, TokenType.OR, self._parse_and(tokens))
+        return node
+
+    def _parse_and(self, tokens):
+        node = self._parse_followedby(tokens)
+        while tokens and tokens[-1].token_type is TokenType.AND:
+            tokens.pop()
+            node = ExpressionNode(node, TokenType.AND, self._parse_followedby(tokens))
+        return node
+
+    def _parse_followedby(self, tokens):
+        node = self._process_expression(tokens)
+        while tokens and tokens[-1].token_type is TokenType.FOLLOWEDBY:
+            tokens.pop()
+            node = ExpressionNode(node, TokenType.FOLLOWEDBY, self._process_expression(tokens))
+        return node
+    
+
+    def process(self, tokens: list[Token]) -> ASTNode:
         tokens.reverse()
 
         # Every pattern must start with an opening bracket
@@ -360,17 +378,19 @@ class Parser:
                     tokens.pop()
                     expression = self._process_expression(tokens)
                 case TokenType.AND | TokenType.OR | TokenType.FOLLOWEDBY:
-                    operator = tokens.pop().token_type
-                    if tokens[-1].token_type is not TokenType.OPEN_BRACKET:
-                        raise RuntimeError
-                    else:
-                        tokens.pop()
+                    self._parse_or(tokens)
 
-                    expression = ExpressionNode(
-                        left=expression,
-                        operator=operator,
-                        right = self._process_expression(tokens)
-                    )
+                # case TokenType.AND | TokenType.OR | TokenType.FOLLOWEDBY:
+                    # operator = tokens.pop().token_type
+                    # if tokens[-1].token_type is not TokenType.OPEN_BRACKET:
+                    #     raise RuntimeError
+                    # else:
+                    #     tokens.pop()
 
+                    # expression = ExpressionNode(
+                    #     left=expression,
+                    #     operator=operator,
+                    #     right = self._process_expression(tokens)
+                    # )
 
         return expression

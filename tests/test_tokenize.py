@@ -46,7 +46,9 @@ def test_tokenizer_md5():
 
 def test_tokenizer_parenthesis():
     assert Tokenizer().process("([(file:hashes.MD5 = '79054025255fb1a26e4bc422aef54eb4')])") == [
+        Token(token_type=TokenType.OPEN_BRACE, original_value="("),
         Token(token_type=TokenType.OPEN_BRACKET, original_value="["),
+        Token(token_type=TokenType.OPEN_BRACE, original_value="("),
         Token(token_type=TokenType.STR, original_value="file"),
         Token(token_type=TokenType.DOUBLE_DOT, original_value=":"),
         Token(token_type=TokenType.STR, original_value="hashes"),
@@ -54,7 +56,9 @@ def test_tokenizer_parenthesis():
         Token(token_type=TokenType.STR, original_value="MD5"),
         Token(token_type=TokenType.EQUALS, original_value="="),
         Token(token_type=TokenType.QUOTED_STR, original_value="79054025255fb1a26e4bc422aef54eb4"),
-        Token(token_type=TokenType.CLOSE_BRACKET, original_value="]")
+        Token(token_type=TokenType.CLOSE_BRACE, original_value=")"),
+        Token(token_type=TokenType.CLOSE_BRACKET, original_value="]"),
+        Token(token_type=TokenType.CLOSE_BRACE, original_value=")")
     ]
 
 
