@@ -13,11 +13,15 @@ def test_tokenize_not_eq():
         Token(token_type=TokenType.STR, original_value="type"),
         Token(token_type=TokenType.NOT_EQUALS, original_value="!="),
         Token(token_type=TokenType.QUOTED_STR, original_value="ipv4-addr"),
-        Token(token_type=TokenType.CLOSE_BRACKET, original_value="]")
+        Token(token_type=TokenType.CLOSE_BRACKET, original_value="]"),
     ]
 
+
 def test_tokenize_whitespace():
-    assert Tokenizer().process("[network-traffic:dst_ref.type != 'ipv4-addr'] AND [network-traffic:dst_ref.type != 'ipv4-addr']") == Tokenizer().process(" [ network-traffic:dst_ref.type  !=   'ipv4-addr' ] AND    [ network-traffic:dst_ref.type   != 'ipv4-addr']")
+    assert Tokenizer().process(
+        "[network-traffic:dst_ref.type != 'ipv4-addr'] AND [network-traffic:dst_ref.type != 'ipv4-addr']"
+    ) == Tokenizer().process(" [ network-traffic:dst_ref.type  !=   'ipv4-addr' ] AND    [ network-traffic:dst_ref.type   != 'ipv4-addr']")
+
 
 def test_tokenize_weird_pattern():
     assert Tokenizer().process("xqwqw") == [Token(token_type=TokenType.STR, original_value="xqwqw")]
@@ -41,8 +45,9 @@ def test_tokenizer_md5():
         Token(token_type=TokenType.STR, original_value="MD5"),
         Token(token_type=TokenType.EQUALS, original_value="="),
         Token(token_type=TokenType.QUOTED_STR, original_value="79054025255fb1a26e4bc422aef54eb4"),
-        Token(token_type=TokenType.CLOSE_BRACKET, original_value="]")
+        Token(token_type=TokenType.CLOSE_BRACKET, original_value="]"),
     ]
+
 
 def test_tokenizer_parenthesis():
     assert Tokenizer().process("([(file:hashes.MD5 = '79054025255fb1a26e4bc422aef54eb4')])") == [
@@ -58,7 +63,7 @@ def test_tokenizer_parenthesis():
         Token(token_type=TokenType.QUOTED_STR, original_value="79054025255fb1a26e4bc422aef54eb4"),
         Token(token_type=TokenType.CLOSE_BRACE, original_value=")"),
         Token(token_type=TokenType.CLOSE_BRACKET, original_value="]"),
-        Token(token_type=TokenType.CLOSE_BRACE, original_value=")")
+        Token(token_type=TokenType.CLOSE_BRACE, original_value=")"),
     ]
 
 

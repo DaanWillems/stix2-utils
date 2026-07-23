@@ -40,6 +40,13 @@ class TokenType(Enum):
     MATCHES = auto()
 
 
+PRECEDENCE = {
+    TokenType.OR: 1,
+    TokenType.AND: 2,
+    TokenType.FOLLOWEDBY: 3,
+}
+
+
 @dataclass
 class Token:
     token_type: TokenType
@@ -87,7 +94,7 @@ class Tokenizer:
                 case " ":
                     str_input.pop()
                 case _:
-                        tokens.append(self._process_str(str_input))
+                    tokens.append(self._process_str(str_input))
         return tokens
 
     def _process_str(self, str_input: list) -> Token:
@@ -175,6 +182,13 @@ class ExpressionNode(ASTNode):
 
 
 @dataclass
+class SubExpressionNode(ASTNode):
+    left: ASTNode
+    right: ASTNode
+    operator: TokenType
+
+
+@dataclass
 class ObjectPathNode(ASTNode):
     object_type: str
     path: str
@@ -184,23 +198,27 @@ class ObjectPathNode(ASTNode):
 class ValueNode(ASTNode):
     value: str
 
+
 @dataclass
 class ObservationalQualiferNode(ASTNode):
     expression: ExpressionNode
-    pass
+
 
 @dataclass
 class RepeatNode(ObservationalQualiferNode):
     repeat_times: int
 
+
 @dataclass
 class WithinNode(ObservationalQualiferNode):
     seconds: int
+
 
 @dataclass
 class StartStopNode(ObservationalQualiferNode):
     start: Timestamp
     stop: Timestamp
+
 
 class Parser:
     def _process_object_value(self, tokens: list[Token]) -> ValueNode:
@@ -249,40 +267,38 @@ class Parser:
             value += f".{tokens.pop().original_value}"
 
         return ObjectPathNode(object_type=object_type, path=value)
-    
+
+    def _parse_inner_binary(self, tokens: list[Token], min_prec: int = 1) -> ExpressionNode:
+        left = self._process_sub_expression(tokens)
+        while tokens and (prec := PRECEDENCE.get(tokens[-1].token_type, 0)) >= min_prec:
+            op = tokens.pop().token_type
+            right = self._parse_inner_binary(tokens, prec + 1)  # +1 => left associative
+            left = ExpressionNode(left=left, operator=op, right=right)
+        return left
+
     def _process_expression(self, tokens: list[Token]) -> ExpressionNode:
-        expression = self._process_sub_expression(tokens)
-        while True:
-            match tokens[-1].token_type:
-                case (
-                    TokenType.AND
-                    | TokenType.OR
-                ):
-                    operator = tokens.pop().token_type
-                    expression = ExpressionNode(
-                        left=expression,
-                        operator=operator,
-                        right = self._process_sub_expression(tokens)
-                    )
+        tok = tokens.pop()
+        match tok.token_type:
+            case TokenType.OPEN_BRACE:
+                expression = self._parse_binary(tokens, 1)  # reset to lowest precedence
+            case TokenType.OPEN_BRACKET:
+                expression = self._parse_inner_binary(tokens)
+            case _:
+                msg = f"unexpected {tok.token_type}"
+                raise RuntimeError(msg)
 
-                case _:
-                    break
-
-        if len(tokens) < 1 or tokens[-1].token_type is not TokenType.CLOSE_BRACKET:
+        if len(tokens) < 1 or (tokens[-1].token_type is not TokenType.CLOSE_BRACKET and tokens[-1].token_type is not TokenType.CLOSE_BRACE):
             raise RuntimeError
         tokens.pop()
 
         while True:
             if len(tokens) == 0:
                 break
-            match(tokens[-1].token_type):
+            match tokens[-1].token_type:
                 case TokenType.REPEATS:
                     tokens.pop()
                     value = tokens.pop().original_value
-                    expression = RepeatNode(
-                        expression=expression,
-                        repeat_times=int(value)
-                    )
+                    expression = RepeatNode(expression=expression, repeat_times=int(value))
                     if tokens[-1].token_type is TokenType.TIMES:
                         tokens.pop()
                     else:
@@ -290,17 +306,13 @@ class Parser:
                 case TokenType.WITHIN:
                     tokens.pop()
                     value = tokens.pop().original_value
-                    expression = WithinNode(
-                        expression=expression,
-                        seconds=int(value)
-                    )
+                    expression = WithinNode(expression=expression, seconds=int(value))
                     if tokens[-1].token_type is TokenType.SECONDS:
                         tokens.pop()
                     else:
                         raise RuntimeError
                 case _:
                     break
-
 
         return expression
 
@@ -334,63 +346,14 @@ class Parser:
 
         return ExpressionNode(left=left, operator=operator, right=right)
 
-    def _self
-
-    def _parse_or(self, tokens):
-        node = self._parse_and(tokens)
-        while tokens and tokens[-1].token_type is TokenType.OR:
-            tokens.pop()
-            node = ExpressionNode(node, TokenType.OR, self._parse_and(tokens))
-        return node
-
-    def _parse_and(self, tokens):
-        node = self._parse_followedby(tokens)
-        while tokens and tokens[-1].token_type is TokenType.AND:
-            tokens.pop()
-            node = ExpressionNode(node, TokenType.AND, self._parse_followedby(tokens))
-        return node
-
-    def _parse_followedby(self, tokens):
-        node = self._process_expression(tokens)
-        while tokens and tokens[-1].token_type is TokenType.FOLLOWEDBY:
-            tokens.pop()
-            node = ExpressionNode(node, TokenType.FOLLOWEDBY, self._process_expression(tokens))
-        return node
-    
+    def _parse_binary(self, tokens: list[Token], min_prec: int = 1) -> ExpressionNode:
+        left = self._process_expression(tokens)
+        while tokens and (prec := PRECEDENCE.get(tokens[-1].token_type, 0)) >= min_prec:
+            op = tokens.pop().token_type
+            right = self._parse_binary(tokens, prec + 1)  # +1 => left associative
+            left = ExpressionNode(left=left, operator=op, right=right)
+        return left
 
     def process(self, tokens: list[Token]) -> ASTNode:
         tokens.reverse()
-
-        # Every pattern must start with an opening bracket
-        if tokens[-1].token_type is not TokenType.OPEN_BRACKET:
-            raise RuntimeError
-
-        expression = None
-
-        while True:
-            if len(tokens) == 0:
-                break
-            match tokens[-1].token_type:
-                case TokenType.OPEN_BRACE:
-                    tokens.pop()
-                    expression = self._process_parenthesis(tokens)
-                case TokenType.OPEN_BRACKET:
-                    tokens.pop()
-                    expression = self._process_expression(tokens)
-                case TokenType.AND | TokenType.OR | TokenType.FOLLOWEDBY:
-                    self._parse_or(tokens)
-
-                # case TokenType.AND | TokenType.OR | TokenType.FOLLOWEDBY:
-                    # operator = tokens.pop().token_type
-                    # if tokens[-1].token_type is not TokenType.OPEN_BRACKET:
-                    #     raise RuntimeError
-                    # else:
-                    #     tokens.pop()
-
-                    # expression = ExpressionNode(
-                    #     left=expression,
-                    #     operator=operator,
-                    #     right = self._process_expression(tokens)
-                    # )
-
-        return expression
+        return self._parse_binary(tokens)

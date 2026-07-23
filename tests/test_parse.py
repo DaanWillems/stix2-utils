@@ -14,6 +14,7 @@ def test_parser_basic():
     assert type(ast.right) is ValueNode
     assert ast.right.value == "ipv4-addr"
 
+
 def read_node(node):
     if node.operator == TokenType.AND:
         return []
@@ -29,13 +30,15 @@ def read_node(node):
 
     return values
 
+
 def test_parser_extract_single_match_observables():
-    tokens = Tokenizer().process("[network-traffic:dst_ref.type = 'ipv4'] OR [network-traffic:dst_ref.value = '1.1.1.1'] AND [network-traffic:dst_ref.value = '2.2.2.2']")
+    tokens = Tokenizer().process(
+        "[network-traffic:dst_ref.type = 'ipv4'] AND [network-traffic:dst_ref.value = '1.1.1.1'] OR [network-traffic:dst_ref.value = '2.2.2.2']"
+    )
     ast = Parser().process(tokens)
 
-    assert read_node(ast) == [
-        {"type": "dst_ref.value", "value": "2.2.2.2"}
-    ]
+    assert read_node(ast) == [{"type": "dst_ref.value", "value": "2.2.2.2"}]
+
 
 def test_parser_issubset():
     tokens = Tokenizer().process("[ipv4-addr:value ISSUBSET '198.51.100.0/24']")
@@ -50,18 +53,6 @@ def test_parser_issubset():
     assert type(ast.right) is ValueNode
     assert ast.right.value == "198.51.100.0/24"
 
-def test_parser_issubset():
-    tokens = Tokenizer().process("[ipv4-addr:value ISSUBSET '198.51.100.0/24']")
-    ast = Parser().process(tokens)
-    assert type(ast) is ExpressionNode
-    assert type(ast.left) is ObjectPathNode
-    assert ast.left.object_type == "ipv4-addr"
-    assert ast.left.path == "value"
-
-    assert ast.operator is TokenType.ISSUBSET
-
-    assert type(ast.right) is ValueNode
-    assert ast.right.value == "198.51.100.0/24"
 
 def test_parser_sha():
     tokens = Tokenizer().process("[file:hashes.'SHA-256' = 'aec070645fe53ee3b3763059376134f058cc337247c978add178b6ccdfb0019f']")
@@ -76,13 +67,17 @@ def test_parser_sha():
     assert type(ast.right) is ValueNode
     assert ast.right.value == "aec070645fe53ee3b3763059376134f058cc337247c978add178b6ccdfb0019f"
 
+
 def test_parser_parenthesis():
     tokens = Tokenizer().process("([file:hashes.'SHA-256' = 'aec070645fe53ee3b3763059376134f058cc337247c978add178b6ccdfb0019f'])")
     ast = Parser().process(tokens)
     assert ast
 
+
 def test_parser_followedby():
-    tokens = Tokenizer().process("[ network-traffic:src_ref.value = '203.0.113.10'] FOLLOWEDBY [network-traffic:dst_ref.value != '198.51.100.58' ]")
+    tokens = Tokenizer().process(
+        "[ network-traffic:src_ref.value = '203.0.113.10'] FOLLOWEDBY [network-traffic:dst_ref.value != '198.51.100.58' ]"
+    )
     ast = Parser().process(tokens)
     assert type(ast) is ExpressionNode
     assert type(ast.left) is ExpressionNode
@@ -102,6 +97,7 @@ def test_parser_followedby():
     assert ast.right.left.path == "dst_ref.value"
     assert ast.right.right.value == "198.51.100.58"
     assert ast.right.operator is TokenType.NOT_EQUALS
+
 
 def test_parser_and():
     tokens = Tokenizer().process("[ network-traffic:src_ref.value = '203.0.113.10' AND network-traffic:dst_ref.value != '198.51.100.58' ]")
@@ -125,8 +121,11 @@ def test_parser_and():
     assert ast.right.right.value == "198.51.100.58"
     assert ast.right.operator is TokenType.NOT_EQUALS
 
+
 def test_parser_and_or():
-    tokens = Tokenizer().process("[ network-traffic:src_ref.value = '203.0.113.10' AND network-traffic:dst_ref.value != '198.51.100.58' OR network-traffic:dst_ref.value = '127.0.0.1' ]")
+    tokens = Tokenizer().process(
+        "[ network-traffic:src_ref.value = '203.0.113.10' AND network-traffic:dst_ref.value != '198.51.100.58' OR network-traffic:dst_ref.value = '127.0.0.1' ]"
+    )
     ast = Parser().process(tokens)
     assert type(ast) is ExpressionNode
     assert type(ast.left) is ExpressionNode
@@ -146,7 +145,6 @@ def test_parser_and_or():
     assert ast.left.left.right.value == "203.0.113.10"
     assert ast.left.left.operator is TokenType.EQUALS
 
-
     assert ast.left.right.left.object_type == "network-traffic"
     assert ast.left.right.left.path == "dst_ref.value"
     assert ast.left.right.right.value == "198.51.100.58"
@@ -157,14 +155,14 @@ def test_parser_and_or():
     assert ast.right.right.value == "127.0.0.1"
     assert ast.right.operator is TokenType.EQUALS
 
+
 def test_parser_observation_expression_qualifier():
-    tokens = Tokenizer().process("([file:hashes.MD5 = '79054025255fb1a26e4bc422aef54eb4']")
+    tokens = Tokenizer().process("[file:hashes.MD5 = '79054025255fb1a26e4bc422aef54eb4']")
     ast = Parser().process(tokens)
     print(ast)
+
 
 # def test_parser_observation_expression_qualifier():
 #     tokens = Tokenizer().process("[network-traffic:dst_ref.value = 'example.com'] AND [network-traffic:dst_ref.value = 'example.com'] REPEATS 5 TIMES WITHIN 1800 SECONDS")
 #     ast = Parser().process(tokens)
 #     print(ast)
-
-
