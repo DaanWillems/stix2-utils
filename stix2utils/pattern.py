@@ -11,6 +11,8 @@ class UnexpectedEODError(Exception):
 class TokenType(Enum):
     OPEN_BRACKET = auto()
     CLOSE_BRACKET = auto()
+    OPEN_BRACE = auto()
+    CLOSE_BRACE = auto()
     DOT = auto()
     DOUBLE_DOT = auto()
     EQUALS = auto()
@@ -47,7 +49,7 @@ class Token:
 class Tokenizer:
     def process(self, str_input: str) -> list[Token]:
         tokens = []
-        str_input = list("".join(str_input.split()))
+        str_input = list(str_input)
         str_input.reverse()
         while True:
             if len(str_input) == 0:
@@ -57,6 +59,10 @@ class Tokenizer:
                     tokens.append(Token(token_type=TokenType.OPEN_BRACKET, original_value=str_input.pop()))
                 case "]":
                     tokens.append(Token(token_type=TokenType.CLOSE_BRACKET, original_value=str_input.pop()))
+                case "(":
+                    tokens.append(Token(token_type=TokenType.OPEN_BRACE, original_value=str_input.pop()))
+                case ")":
+                    tokens.append(Token(token_type=TokenType.CLOSE_BRACE, original_value=str_input.pop()))
                 case "=":
                     tokens.append(Token(token_type=TokenType.EQUALS, original_value=str_input.pop()))
                 case "!":
@@ -78,38 +84,32 @@ class Tokenizer:
                     tokens.append(Token(token_type=TokenType.DOUBLE_DOT, original_value=str_input.pop()))
                 case "'":
                     tokens.append(self._process_quoted_str(str_input))
+                case " ":
+                    str_input.pop()
                 case _:
-                    if str_input[-1].isupper():
-                        tokens.append(self._process_keyword(str_input))
-                    else:
                         tokens.append(self._process_str(str_input))
         return tokens
-
-    def _process_keyword(self, str_input: list) -> Token:
-        value = ""
-        while True:
-            if len(str_input) == 0:
-                raise UnexpectedEODError
-
-            value += str_input.pop()
-            if not value.isupper():
-                raise UnexpectedEODError
-
-            keyword_token = self._match_keyword(value)
-            if keyword_token:
-                return keyword_token
 
     def _process_str(self, str_input: list) -> Token:
         value = ""
         while True:
             if len(str_input) == 0:
-                return Token(token_type=TokenType.STR, original_value=value)
-
-            if "A" <= str_input[-1] <= "Z":  # We are in a string, but the next character indicates the start of a keyword
+                keyword_token = self._match_keyword(value)
+                if keyword_token:
+                    return keyword_token
                 return Token(token_type=TokenType.STR, original_value=value)
 
             match str_input[-1]:
+                case " ":
+                    str_input.pop()
+                    keyword_token = self._match_keyword(value)
+                    if keyword_token:
+                        return keyword_token
+                    return Token(token_type=TokenType.STR, original_value=value)
                 case "[" | "]" | "=" | ":" | "." | ">" | "<" | "!":
+                    keyword_token = self._match_keyword(value)
+                    if keyword_token:
+                        return keyword_token
                     return Token(token_type=TokenType.STR, original_value=value)
                 case _:
                     value += str_input.pop()
