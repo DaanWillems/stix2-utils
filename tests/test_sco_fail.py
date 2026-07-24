@@ -12,7 +12,7 @@ def test_missing_required_field_id_artifact() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "artifact.id: Field required [missing]"
 
@@ -29,7 +29,7 @@ def test_artifact_requires_payload_or_url() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
         "artifact: Value error, exactly one of payload_bin or url MUST be provided [value_error]"
@@ -47,11 +47,9 @@ def test_autonomous_system_missing_number() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == (
-        "autonomous-system.number: Field required [missing]"
-    )
+    assert validation_result.errors[0].description == ("autonomous-system.number: Field required [missing]")
 
 
 def test_directory_missing_path() -> None:
@@ -64,7 +62,7 @@ def test_directory_missing_path() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "directory.path: Field required [missing]"
 
@@ -78,13 +76,11 @@ def test_domain_name_bad_resolves_to_ref_type() -> None:
             "spec_version": "2.1",
             "id": "domain-name--3c10e93f-798e-5a26-a0c1-08156efab7f5",
             "value": "example.com",
-            "resolves_to_refs": [
-                "url--c1477287-23ac-5971-a010-5c287877fa60"
-            ],
+            "resolves_to_refs": ["url--c1477287-23ac-5971-a010-5c287877fa60"],
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
         "domain-name.resolves_to_refs.0: String should match pattern "
@@ -104,7 +100,7 @@ def test_email_address_missing_value() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "email-addr.value: Field required [missing]"
 
@@ -120,11 +116,9 @@ def test_email_message_missing_is_multipart() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == (
-        "email-message.is_multipart: Field required [missing]"
-    )
+    assert validation_result.errors[0].description == ("email-message.is_multipart: Field required [missing]")
 
 
 def test_email_message_body_conflicts_with_multipart() -> None:
@@ -140,7 +134,7 @@ def test_email_message_body_conflicts_with_multipart() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
         "email-message: Value error, body MUST NOT be used if is_multipart is true [value_error]"
@@ -159,7 +153,7 @@ def test_file_requires_hashes_or_name() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
         "file: Value error, File object MUST contain at least one of hashes or name [value_error]"
@@ -178,11 +172,9 @@ def test_file_negative_size() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == (
-        "file.size: Input should be greater than or equal to 0 [greater_than_equal]"
-    )
+    assert validation_result.errors[0].description == ("file.size: Input should be greater than or equal to 0 [greater_than_equal]")
 
 
 def test_ipv4_address_missing_value() -> None:
@@ -195,7 +187,7 @@ def test_ipv4_address_missing_value() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "ipv4-addr.value: Field required [missing]"
 
@@ -210,7 +202,7 @@ def test_ipv6_address_missing_value() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "ipv6-addr.value: Field required [missing]"
 
@@ -227,11 +219,10 @@ def test_mac_address_uppercase_value() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
-        "mac-addr.value: String should match pattern "
-        "'^([0-9a-f]{2}:){5}[0-9a-f]{2}$' [string_pattern_mismatch]"
+        "mac-addr.value: String should match pattern '^([0-9a-f]{2}:){5}[0-9a-f]{2}$' [string_pattern_mismatch]"
     )
 
 
@@ -245,7 +236,7 @@ def test_mutex_missing_name() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "mutex.name: Field required [missing]"
 
@@ -261,11 +252,9 @@ def test_network_traffic_missing_protocols() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == (
-        "network-traffic.protocols: Field required [missing]"
-    )
+    assert validation_result.errors[0].description == ("network-traffic.protocols: Field required [missing]")
 
 
 def test_network_traffic_requires_src_or_dst() -> None:
@@ -280,11 +269,10 @@ def test_network_traffic_requires_src_or_dst() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
-        "network-traffic: Value error, Network Traffic MUST contain at least one of "
-        "src_ref or dst_ref [value_error]"
+        "network-traffic: Value error, Network Traffic MUST contain at least one of src_ref or dst_ref [value_error]"
     )
 
 
@@ -298,11 +286,10 @@ def test_process_requires_at_least_one_property() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
-        "process: Value error, Process object MUST contain at least one property "
-        "(or extension) [value_error]"
+        "process: Value error, Process object MUST contain at least one property (or extension) [value_error]"
     )
 
 
@@ -317,7 +304,7 @@ def test_software_missing_name() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "software.name: Field required [missing]"
 
@@ -332,7 +319,7 @@ def test_url_missing_value() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "url.value: Field required [missing]"
 
@@ -347,11 +334,10 @@ def test_user_account_requires_at_least_one_property() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
-        "user-account: Value error, User Account object MUST contain at least one property "
-        "[value_error]"
+        "user-account: Value error, User Account object MUST contain at least one property [value_error]"
     )
 
 
@@ -365,11 +351,10 @@ def test_windows_registry_key_requires_at_least_one_property() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
-        "windows-registry-key: Value error, Windows Registry Key object MUST contain at "
-        "least one property [value_error]"
+        "windows-registry-key: Value error, Windows Registry Key object MUST contain at least one property [value_error]"
     )
 
 
@@ -383,9 +368,8 @@ def test_x509_certificate_requires_at_least_one_property() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == (
-        "x509-certificate: Value error, X.509 Certificate object MUST contain at least one "
-        "specific property [value_error]"
+        "x509-certificate: Value error, X.509 Certificate object MUST contain at least one specific property [value_error]"
     )

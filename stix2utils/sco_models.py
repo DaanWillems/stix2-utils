@@ -38,6 +38,7 @@ class STIXCyberObservable(BaseModel):
 
     # Required common properties
     id: str = Field(..., pattern=rf"^[a-z0-9-]+--{_UUID}$")
+    type: str
 
     # Optional common properties
     spec_version: Literal["2.1"] | None = "2.1"
@@ -54,6 +55,7 @@ class STIXCyberObservable(BaseModel):
             msg = f"id prefix {prefix!r} does not match type {expected!r}"
             raise ValueError(msg)
         return self
+
 
 class EncryptionAlgorithm(str, Enum):
     AES_256_GCM = "AES-256-GCM"

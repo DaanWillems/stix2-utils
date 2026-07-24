@@ -24,3 +24,31 @@ print(validation_result.errors)
 ```
 
 The object is available in the validation result under the .obj key. If the input was not valid, the .obj will be None. 
+
+### Pattern parsing
+You can use the STIX 2.1 pattern parser to convert a pattern string into an AST. 
+
+
+```python
+ast = Parser().process("[ network-traffic:src_ref.value = '203.0.113.10' AND network-traffic:dst_ref.value != '198.51.100.58' OR network-traffic:dst_ref.value = '127.0.0.1' ] OR [ipv4-addr:value = '198.51.100.0']")
+```
+Returns an AST that looks like this:
+```
+RootExpressionNode (OR)
+├── left: ObservationExpressionNode (OR)
+│   ├── left: ComparisonExpressionNode (AND)
+│   │   ├── left:  ComparisonExpressionNode (EQUALS)
+|   |   |   ├── left:  ObjectPathNode  → network-traffic:dst_ref.value
+|   |   |   ├── right: ValueNode  → "203.0.113.10" 
+│   │   └── right: ComparisonExpressionNode  (NOT_EQUALS)
+|   |   |   ├── left:  ObjectPathNode  → network-traffic:dst_ref.value
+|   |   |   ├── right: ValueNode  → "198.51.100.58" 
+│   └── right: ComparisonExpressionNode (EQUALS)
+│       ├── left:  ObjectPathNode  → network-traffic:dst_ref.value
+│       └── right: ValueNode       → "127.0.0.1"
+└── right: ObservationExpressionNode (EQUALS)
+    ├── left:  ObjectPathNode  → network-traffic:dst_ref.value
+    └── right: ValueNode       → "198.51.100.0"
+```
+
+The resulting AST can be used to extract observable values from patterns, and to evaluate values against the pattern to determine if there is a match.

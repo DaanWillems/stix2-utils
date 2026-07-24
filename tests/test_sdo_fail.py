@@ -3,22 +3,21 @@ from stix2utils.validator import STIX2Validator
 
 def test_none_value() -> None:
     validator = STIX2Validator()
-    validation_result = validator.validate_entity(
-        None
-    )
+    validation_result = validator.validate_entity(None)
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == "(root): Input should be a valid dictionary or object to extract fields from [model_attributes_type]"
+    assert (
+        validation_result.errors[0].description
+        == "(root): Input should be a valid dictionary or object to extract fields from [model_attributes_type]"
+    )
 
 
 def test_empty_dict() -> None:
     validator = STIX2Validator()
-    validation_result = validator.validate_entity(
-        {}
-    )
+    validation_result = validator.validate_entity({})
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "(root): Unable to extract tag using discriminator 'type' [union_tag_not_found]"
 
@@ -41,7 +40,7 @@ def test_missing_required_field_type() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "(root): Unable to extract tag using discriminator 'type' [union_tag_not_found]"
 
@@ -64,7 +63,7 @@ def test_missing_required_field_id() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "indicator.id: Field required [missing]"
 
@@ -86,7 +85,7 @@ def test_missing_required_field_id_pattern() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 2
     assert validation_result.errors[0].description == "indicator.id: Field required [missing]"
     assert validation_result.errors[1].description == "indicator.pattern: Field required [missing]"
@@ -112,10 +111,11 @@ def test_invalid_created_by_ref() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert (
-        validation_result.errors[0].description == "indicator.created_by_ref: String should match pattern '^identity--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' [string_pattern_mismatch]"
+        validation_result.errors[0].description == "indicator.created_by_ref: String should match pattern '"
+        "^identity--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' [string_pattern_mismatch]"
     )
 
 
@@ -133,7 +133,7 @@ def test_id_mismatch() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert (
         validation_result.errors[0].description
@@ -155,9 +155,14 @@ def test_bad_created_timestamp() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == "attack-pattern.created: String should match pattern '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$' [string_pattern_mismatch]"
+    assert (
+        validation_result.errors[0].description
+        == "attack-pattern.created: String should match pattern '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$' "
+        "[string_pattern_mismatch]"
+    )
+
 
 def test_first_seen_timestamp() -> None:
     validator = STIX2Validator()
@@ -174,8 +179,9 @@ def test_first_seen_timestamp() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
+
 
 def test_bad_confidence() -> None:
     validator = STIX2Validator()
@@ -192,9 +198,13 @@ def test_bad_confidence() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == 'attack-pattern.confidence: Input should be greater than or equal to 0 [greater_than_equal]'
+    assert (
+        validation_result.errors[0].description
+        == "attack-pattern.confidence: Input should be greater than or equal to 0 [greater_than_equal]"
+    )
+
 
 def test_bad_killchain() -> None:
     validator = STIX2Validator()
@@ -206,20 +216,18 @@ def test_bad_killchain() -> None:
             "created": "2024-01-15T08:00:00.000Z",
             "modified": "2024-01-15T08:00:00.000Z",
             "name": "Spear Phishing",
-            "kill_chain_phases": [
-                {
-                    "woops": "foo",
-                    "phase_name": "pre-attack"
-                }
-            ],
+            "kill_chain_phases": [{"woops": "foo", "phase_name": "pre-attack"}],
             "description": "A targeted phishing attack against specific individuals.",
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 2
-    assert validation_result.errors[0].description == 'attack-pattern.kill_chain_phases.0.kill_chain_name: Field required [missing]'
-    assert validation_result.errors[1].description == 'attack-pattern.kill_chain_phases.0.woops: Extra inputs are not permitted [extra_forbidden]'
+    assert validation_result.errors[0].description == "attack-pattern.kill_chain_phases.0.kill_chain_name: Field required [missing]"
+    assert (
+        validation_result.errors[1].description
+        == "attack-pattern.kill_chain_phases.0.woops: Extra inputs are not permitted [extra_forbidden]"
+    )
 
 
 def test_empty_listy() -> None:
@@ -237,6 +245,9 @@ def test_empty_listy() -> None:
         }
     )
 
-    assert not validation_result.success
+    assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == 'attack-pattern.kill_chain_phases: List should have at least 1 item after validation, not 0 [too_short]'
+    assert (
+        validation_result.errors[0].description
+        == "attack-pattern.kill_chain_phases: List should have at least 1 item after validation, not 0 [too_short]"
+    )
