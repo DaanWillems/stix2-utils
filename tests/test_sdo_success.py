@@ -342,3 +342,21 @@ def test_vulnerability() -> None:
 
     assert validation_result.is_valid
     assert len(validation_result.errors) == 0
+
+
+def test_marking() -> None:
+    validator = STIX2Validator()
+    validation_result = validator.validate_entity(
+        {
+            "created": "2017-01-20T00:00:00.000Z",
+            "definition": {"tlp": "amber"},
+            "definition_type": "tlp",
+            "id": "marking-definition--f88d31f6-486f-44da-b317-01333bde0b82",
+            "spec_version": "2.1",
+            "name": "TLP:AMBER",
+            "type": "marking-definition",
+        }
+    )
+
+    assert validation_result.success
+    assert len(validation_result.errors) == 0
