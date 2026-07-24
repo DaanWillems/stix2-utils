@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from stix2utils.common import Timestamp
 from stix2utils.references import _UUID, AnyRef, IdentityRef, MarkingRef, SampleRef, SoftwareRef
@@ -16,6 +16,7 @@ class STIXDomainObject(BaseModel):
 
     # Required common properties
     id: str = Field(..., pattern=rf"^[a-z0-9-]+--{_UUID}$")
+    type: str
     spec_version: Literal["2.1"] = "2.1"
     created: Timestamp
     modified: Timestamp

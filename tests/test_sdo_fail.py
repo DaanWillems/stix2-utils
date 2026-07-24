@@ -114,8 +114,8 @@ def test_invalid_created_by_ref() -> None:
     assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert (
-        validation_result.errors[0].description
-        == "indicator.created_by_ref: String should match pattern '^identity--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' [string_pattern_mismatch]"
+        validation_result.errors[0].description == "indicator.created_by_ref: String should match pattern '"
+        "^identity--[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' [string_pattern_mismatch]"
     )
 
 
@@ -159,7 +159,8 @@ def test_bad_created_timestamp() -> None:
     assert len(validation_result.errors) == 1
     assert (
         validation_result.errors[0].description
-        == "attack-pattern.created: String should match pattern '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$' [string_pattern_mismatch]"
+        == "attack-pattern.created: String should match pattern '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$' "
+        "[string_pattern_mismatch]"
     )
 
 

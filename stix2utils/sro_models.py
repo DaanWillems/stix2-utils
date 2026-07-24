@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from stix2utils.common import SCO_TYPES, SDO_TYPES, Timestamp
 from stix2utils.references import _UUID, AnyRef, IdentityOrLocationRef, IdentityRef, MarkingRef, ObservedDataRef
@@ -212,6 +212,7 @@ class STIXRelationshipObject(BaseModel):
 
     # Required common properties
     id: str = Field(..., pattern=rf"^[a-z0-9-]+--{_UUID}$")
+    type: str
     spec_version: Literal["2.1"] = "2.1"
     created: Timestamp
     modified: Timestamp

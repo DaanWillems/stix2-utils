@@ -1,6 +1,4 @@
-import pytest
-
-from stix2utils.pattern import Token, Tokenizer, TokenType, UnexpectedEODError
+from stix2utils.pattern import Token, Tokenizer, TokenType
 
 
 def test_tokenize_not_eq():
@@ -69,7 +67,8 @@ def test_tokenizer_parenthesis():
 
 def test_tokenize_complex_pattern():
     assert Tokenizer().process(
-        "[process:command_line MATCHES '^.+>-add GlobalSign.cer -c -s -r localMachine Root$'] FOLLOWEDBY [process:command_line MATCHES'^.+>-add GlobalSign.cer -c -s -r localMachineTrustedPublisher$'] WITHIN 300 SECONDS"
+        "[process:command_line MATCHES '^.+>-add GlobalSign.cer -c -s -r localMachine Root$'] FOLLOWEDBY [process:command_line "
+        "MATCHES'^.+>-add GlobalSign.cer -c -s -r localMachineTrustedPublisher$'] WITHIN 300 SECONDS"
     )
 
 
@@ -88,7 +87,8 @@ def test_tokenize_brackets():
 def test_tokenize_repeats():
     tokenizer = Tokenizer()
     tokens = tokenizer.process(
-        "[network-traffic:dst_ref.type = 'ipv4-addr' AND network-traffic:dst_ref.value = '203.0.113.33/32'] REPEATS 5 TIMES WITHIN 1800 SECONDS"
+        "[network-traffic:dst_ref.type = 'ipv4-addr' AND network-traffic:dst_ref.value = '203.0.113.33/32'] "
+        "REPEATS 5 TIMES WITHIN 1800 SECONDS"
     )
     assert tokens == [
         Token(token_type=TokenType.OPEN_BRACKET, original_value="["),
@@ -144,7 +144,9 @@ def test_tokenize_1():
 def test_tokenize_2():
     tokenizer = Tokenizer()
     tokens = tokenizer.process(
-        "[user-account:account_type = 'unix' AND user-account:user_id = '1007' AND user-account:account_login = 'Peter'] AND [user-account:account_type = 'unix' AND user-account:user_id = '1008' AND user-account:account_login = 'Paul'] AND [user-account:account_type = 'unix' AND user-account:user_id = '1009' AND user-account:account_login = 'Mary']"
+        "[user-account:account_type = 'unix' AND user-account:user_id = '1007' AND user-account:account_login = 'Peter'] AND "
+        "[user-account:account_type = 'unix' AND user-account:user_id = '1008' AND user-account:account_login = 'Paul'] AND "
+        "[user-account:account_type = 'unix' AND user-account:user_id = '1009' AND user-account:account_login = 'Mary']"
     )
     assert tokens == [
         Token(token_type=TokenType.OPEN_BRACKET, original_value="["),

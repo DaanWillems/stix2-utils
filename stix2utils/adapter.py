@@ -86,4 +86,4 @@ SDO_SCO_SRO = Annotated[
     Field(discriminator="type"),
 ]
 
-stix_adapter = TypeAdapter(SDO_SCO_SRO)
+stix_adapter: TypeAdapter = TypeAdapter(SDO_SCO_SRO)

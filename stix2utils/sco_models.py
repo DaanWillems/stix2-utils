@@ -38,6 +38,7 @@ class STIXCyberObservable(BaseModel):
 
     # Required common properties
     id: str = Field(..., pattern=rf"^[a-z0-9-]+--{_UUID}$")
+    type: str
 
     # Optional common properties
     spec_version: Literal["2.1"] | None = "2.1"
