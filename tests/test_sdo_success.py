@@ -358,5 +358,5 @@ def test_marking() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
