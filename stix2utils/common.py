@@ -3,8 +3,10 @@ from typing import Annotated
 
 from pydantic import Field
 
+
 class ShouldError(Exception):
     pass
+
 
 # ---------------------------------------------------------------------------
 # Common base

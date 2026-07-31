@@ -5,7 +5,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from stix2utils.common import ShouldError, Timestamp
+from stix2utils.common import Timestamp
 from stix2utils.references import _UUID, AnyRef, IdentityRef, MarkingRef, SampleRef, SoftwareRef
 
 
@@ -41,33 +41,43 @@ class STIXDomainObject(BaseModel):
             raise ValueError(msg)
         return self
 
+    def should(self) -> list[str]:
+        return []
 
-#should
+
+# should
 class KillChainPhase(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     kill_chain_name: str
     phase_name: str
 
-    @model_validator(mode="after")
-    def _should(self) -> KillChainPhase:
+    def should(self) -> list[str]:
+        warnings = []
         if not self.kill_chain_name.islower():
-            raise ShouldError("kill_chain_name should be lowercase")
+            warnings.append("kill_chain_name should be lowercase")
         if "_" in self.kill_chain_name or " " in self.kill_chain_name:
-            raise ShouldError("kill_chain_name should not contain spaces or underscores")
+            warnings.append("kill_chain_name should not contain spaces or underscores")
         if not self.phase_name.islower():
-            raise ShouldError("kill_chain_name should be lowercase")
+            warnings.append("phase_name should be lowercase")
         if "_" in self.phase_name or " " in self.kill_chain_name:
-            raise ShouldError("kill_chain_name should not contain spaces or underscores")
+            warnings.append("phase_name should not contain spaces or underscores")
+        return warnings
 
 
-#should
+# should
 class AttackPattern(STIXDomainObject):
     type: Literal["attack-pattern"] = "attack-pattern"
     name: str
     description: str | None = None
     aliases: Annotated[list[str], Field(min_length=1)] | None = None
     kill_chain_phases: Annotated[list[KillChainPhase], Field(min_length=1)] | None = None
+
+    def should(self) -> list[str]:
+        warnings = []
+        for kill_chain_phase in self.kill_chain_phases:
+            warnings += kill_chain_phase.should()
+        return warnings
 
 
 class Campaign(STIXDomainObject):

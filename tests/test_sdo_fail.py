@@ -229,6 +229,7 @@ def test_bad_killchain() -> None:
         == "attack-pattern.kill_chain_phases.0.woops: Extra inputs are not permitted [extra_forbidden]"
     )
 
+
 def test_bad_killchain_shoulds() -> None:
     validator = STIX2Validator()
     validation_result = validator.validate_entity(
@@ -239,14 +240,15 @@ def test_bad_killchain_shoulds() -> None:
             "created": "2024-01-15T08:00:00.000Z",
             "modified": "2024-01-15T08:00:00.000Z",
             "name": "Spear Phishing",
-            "kill_chain_phases": [{"kill_chain_name": "FOO", "phase_name": "pre-attack"}],
+            "kill_chain_phases": [{"kill_chain_name": "FOO", "phase_name": "pre_attack"}],
             "description": "A targeted phishing attack against specific individuals.",
         }
     )
 
     assert validation_result.is_valid
-    assert len(validation_result.warnings) == 1
+    assert len(validation_result.warnings) == 2
     assert validation_result.warnings[0].description == "kill_chain_name should be lowercase"
+    assert validation_result.warnings[1].description == "phase_name should not contain spaces or underscores"
 
 
 def test_empty_listy() -> None:

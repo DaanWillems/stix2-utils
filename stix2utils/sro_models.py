@@ -237,6 +237,9 @@ class STIXRelationshipObject(BaseModel):
             raise ValueError(msg)
         return self
 
+    def should(self) -> list[str]:
+        return []
+
 
 class Relationship(STIXRelationshipObject):
     type: Literal["relationship"] = "relationship"

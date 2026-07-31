@@ -16,6 +16,11 @@ class STIX2ValidationError:
 
 
 @dataclass
+class STIX2ValidationWarning:
+    description: str
+
+
+@dataclass
 class STIX2ValidationResult:
     is_valid: bool
     obj: STIXDomainObject | STIXCyberObservable | STIXRelationshipObject | None = None
@@ -26,7 +31,7 @@ class STIX2ValidationResult:
 class STIX2Validator:
     def validate_entity(self, obj: dict[str, Any]) -> STIX2ValidationResult:
         try:
-            result_object = stix_adapter.validate_python(obj)
+            result_object: STIXDomainObject | STIXCyberObservable | STIXRelationshipObject = stix_adapter.validate_python(obj)
         except ValidationError as e:
             stix2_validation_errors = []
 
@@ -35,6 +40,5 @@ class STIX2Validator:
                 stix2_validation_errors.append(STIX2ValidationError(description=f"{loc}: {err['msg']} [{err['type']}]"))
 
             return STIX2ValidationResult(is_valid=False, errors=stix2_validation_errors)
-        except ShouldError as e:
-            return STIX2ValidationResult(is_valid=True, warnings=STIX2ValidationError(description=str(e)))
-        return STIX2ValidationResult(is_valid=True, obj=result_object)
+        warnings = [STIX2ValidationWarning(warning) for warning in result_object.should()]
+        return STIX2ValidationResult(is_valid=True, obj=result_object, warnings=warnings)
