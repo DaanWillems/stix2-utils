@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from stix2utils.common import Timestamp
 from stix2utils.references import _UUID, AnyRef, IdentityRef, MarkingRef, SampleRef, SoftwareRef
+from stix2utils.vocabs import GroupingContextOv
 
 
 class STIXDomainObject(BaseModel):
@@ -89,6 +90,14 @@ class Campaign(STIXDomainObject):
     last_seen: Timestamp | None = None
     objective: str | None = None
 
+    @model_validator(mode="after")
+    def _not_last_before_first(self) -> Campaign:
+        if self.last_seen is not None and self.first_seen is not None:
+            if self.last_seen < self.first_seen:
+                msg = "last_seen cannot be before first_seen"
+                raise ValueError(msg)
+        return self
+
 
 class CourseOfAction(STIXDomainObject):
     type: Literal["course-of-action"] = "course-of-action"
@@ -126,6 +135,23 @@ class Indicator(STIXDomainObject):
     valid_until: str | None = None
     kill_chain_phases: Annotated[list[KillChainPhase], Field(min_length=1)] | None = None
 
+    @model_validator(mode="after")
+    def _not_last_before_first(self) -> Campaign:
+        if self.valid_until is not None and self.valid_from is not None:
+            if self.valid_until < self.valid_from:
+                msg = "valid_until cannot be before valid_from"
+                raise ValueError(msg)
+        return self
+
+    def should(self) -> list[str]:
+        warnings = []
+        if self.name is None:
+            warnings.append("name is missing")
+        if self.description is None:
+            warnings.append("description is missing")
+        return self
+
+
 
 class Infrastructure(STIXDomainObject):
     type: Literal["infrastructure"] = "infrastructure"
@@ -136,6 +162,14 @@ class Infrastructure(STIXDomainObject):
     kill_chain_phases: Annotated[list[KillChainPhase], Field(min_length=1)] | None = None
     first_seen: Timestamp | None = None
     last_seen: Timestamp | None = None
+
+    @model_validator(mode="after")
+    def _not_last_before_first(self) -> Campaign:
+        if self.last_seen is not None and self.first_seen is not None:
+            if self.last_seen < self.first_seen:
+                msg = "last_seen cannot be before first_seen"
+                raise ValueError(msg)
+        return self
 
 
 class IntrusionSet(STIXDomainObject):
@@ -150,20 +184,49 @@ class IntrusionSet(STIXDomainObject):
     primary_motivation: str | None = None
     secondary_motivations: Annotated[list[str], Field(min_length=1)] | None = None
 
+    @model_validator(mode="after")
+    def _not_last_before_first(self) -> Campaign:
+        if self.last_seen is not None and self.first_seen is not None:
+            if self.last_seen < self.first_seen:
+                msg = "last_seen cannot be before first_seen"
+                raise ValueError(msg)
+        return self
+
+
+Latitude = Annotated[float, Field(ge=-90, le=90)]
+Longitude = Annotated[float, Field(ge=-180, le=180)]
+Precision = Annotated[float, Field(ge=0)]
 
 class Location(STIXDomainObject):
     type: Literal["location"] = "location"
     name: str | None = None
     description: str | None = None
-    latitude: float | None = None
-    longitude: float | None = None
-    precision: float | None = None
+    latitude: Latitude | None = None
+    longitude: Longitude | None = None
+    precision: Precision | None = None
     region: str | None = None
     country: str | None = None
     administrative_area: str | None = None
     city: str | None = None
     street_address: str | None = None
     postal_code: str | None = None
+
+
+    @model_validator(mode="after")
+    def _langitude_longitude(self) -> Campaign:
+        if self.latitude is not None and self.longitude is None:
+            msg = "latitude is set but longitude is not set"
+            raise ValueError(msg)
+        if self.longitude is not None and self.latitude is None:
+            msg = "longitude is set but latitude is not set"
+            raise ValueError(msg)
+        if self.precision is not None and self.latitude is None:
+            msg = "precision is set but latitude is not set"
+            raise ValueError(msg)
+        if self.precision is not None and self.longitude is None:
+            msg = "precision is set but longitude is not set"
+            raise ValueError(msg)
+        return self
 
 
 class Malware(STIXDomainObject):
@@ -182,6 +245,13 @@ class Malware(STIXDomainObject):
     capabilities: Annotated[list[str], Field(min_length=1)] | None = None
     sample_refs: Annotated[list[SampleRef], Field(min_length=1)] | None = None
 
+    @model_validator(mode="after")
+    def _not_last_before_first(self) -> Campaign:
+        if self.last_seen is not None and self.first_seen is not None:
+            if self.last_seen < self.first_seen:
+                msg = "last_seen cannot be before first_seen"
+                raise ValueError(msg)
+        return self
 
 class MalwareAnalysis(STIXDomainObject):
     type: Literal["malware-analysis"] = "malware-analysis"
@@ -219,6 +289,13 @@ class ObservedData(STIXDomainObject):
     object_refs: Annotated[list[AnyRef], Field(min_length=1)] | None = None
     objects: dict | None = None  # deprecated in 2.1 in favor of object_refs
 
+    @model_validator(mode="after")
+    def _not_last_before_first(self) -> Campaign:
+        if self.last_observed is not None and self.first_observed is not None:
+            if self.last_observed < self.first_observed:
+                msg = "last_observed cannot be before first_observed"
+                raise ValueError(msg)
+        return self
 
 class OpinionEnum(str, Enum):
     STRONGLY_DISAGREE = "strongly-disagree"
@@ -260,6 +337,14 @@ class ThreatActor(STIXDomainObject):
     primary_motivation: str | None = None
     secondary_motivations: Annotated[list[str], Field(min_length=1)] | None = None
     personal_motivations: Annotated[list[str], Field(min_length=1)] | None = None
+
+    @model_validator(mode="after")
+    def _not_last_before_first(self) -> Campaign:
+        if self.last_seen is not None and self.first_seen is not None:
+            if self.last_seen < self.first_seen:
+                msg = "last_seen cannot be before first_seen"
+                raise ValueError(msg)
+        return self
 
 
 class Tool(STIXDomainObject):

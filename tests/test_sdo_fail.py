@@ -68,6 +68,31 @@ def test_missing_required_field_id() -> None:
     assert validation_result.errors[0].description == "indicator.id: Field required [missing]"
 
 
+def test_indicator_until_before_from() -> None:
+    validator = STIX2Validator()
+    validation_result = validator.validate_entity(
+        {
+            "type": "indicator",
+            "spec_version": "2.1",
+            "id": "indicator--8e2e2d2b-17d4-4cbf-938f-98ee46b3cd3f",
+            "created": "2024-01-15T08:00:00.000Z",
+            "modified": "2024-01-15T08:00:00.000Z",
+            "name": "Malicious IP Address",
+            "description": "This IP address has been observed in C2 communications.",
+            "indicator_types": ["malicious-activity"],
+            "pattern": "[ipv4-addr:value = '198.51.100.23']",
+            "pattern_type": "stix",
+            "confidence": 21,
+            "pattern_version": "2.1",
+            "valid_until": "2026-01-15T08:00:00.000Z",
+            "valid_from": "2027-01-15T08:00:00.000Z"
+        }
+    )
+
+    assert not validation_result.is_valid
+    assert len(validation_result.errors) == 1
+    assert validation_result.errors[0].description == "indicator: Value error, valid_until cannot be before valid_from [value_error]"
+
 def test_missing_required_field_id_pattern() -> None:
     validator = STIX2Validator()
     validation_result = validator.validate_entity(
