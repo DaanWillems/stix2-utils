@@ -254,6 +254,29 @@ def test_bad_killchain() -> None:
         == "attack-pattern.kill_chain_phases.0.woops: Extra inputs are not permitted [extra_forbidden]"
     )
 
+def test_campaign_last_before_first() -> None:
+    validator = STIX2Validator()
+    validation_result = validator.validate_entity(
+        {
+            "type": "campaign",
+            "spec_version": "2.1",
+            "id": "campaign--8e2e2d2b-17d4-4cbf-938f-98ee46b3cd40",
+            "created": "2024-01-15T08:00:00.000Z",
+            "modified": "2024-01-15T08:00:00.000Z",
+            "last_seen": "2024-01-15T08:00:00.000Z",
+            "first_seen": "2025-01-15T08:00:00.000Z",
+            "name": "Operation Nightfall",
+            "description": "A sustained campaign targeting financial institutions.",
+        }
+    )
+
+    assert not validation_result.is_valid
+    assert len(validation_result.errors) == 1
+    assert (
+        validation_result.errors[0].description
+        == "campaign: Value error, last_seen cannot be before first_seen [value_error]"
+    )
+
 
 def test_bad_killchain_shoulds() -> None:
     validator = STIX2Validator()
