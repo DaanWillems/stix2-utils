@@ -68,6 +68,31 @@ def test_missing_required_field_id() -> None:
     assert validation_result.errors[0].description == "indicator.id: Field required [missing]"
 
 
+def test_indicator_until_before_from() -> None:
+    validator = STIX2Validator()
+    validation_result = validator.validate_entity(
+        {
+            "type": "indicator",
+            "spec_version": "2.1",
+            "id": "indicator--8e2e2d2b-17d4-4cbf-938f-98ee46b3cd3f",
+            "created": "2024-01-15T08:00:00.000Z",
+            "modified": "2024-01-15T08:00:00.000Z",
+            "name": "Malicious IP Address",
+            "description": "This IP address has been observed in C2 communications.",
+            "indicator_types": ["malicious-activity"],
+            "pattern": "[ipv4-addr:value = '198.51.100.23']",
+            "pattern_type": "stix",
+            "confidence": 21,
+            "pattern_version": "2.1",
+            "valid_until": "2026-01-15T08:00:00.000Z",
+            "valid_from": "2027-01-15T08:00:00.000Z"
+        }
+    )
+
+    assert not validation_result.is_valid
+    assert len(validation_result.errors) == 1
+    assert validation_result.errors[0].description == "indicator: Value error, valid_until cannot be before valid_from [value_error]"
+
 def test_missing_required_field_id_pattern() -> None:
     validator = STIX2Validator()
     validation_result = validator.validate_entity(
@@ -228,6 +253,50 @@ def test_bad_killchain() -> None:
         validation_result.errors[1].description
         == "attack-pattern.kill_chain_phases.0.woops: Extra inputs are not permitted [extra_forbidden]"
     )
+
+def test_campaign_last_before_first() -> None:
+    validator = STIX2Validator()
+    validation_result = validator.validate_entity(
+        {
+            "type": "campaign",
+            "spec_version": "2.1",
+            "id": "campaign--8e2e2d2b-17d4-4cbf-938f-98ee46b3cd40",
+            "created": "2024-01-15T08:00:00.000Z",
+            "modified": "2024-01-15T08:00:00.000Z",
+            "last_seen": "2024-01-15T08:00:00.000Z",
+            "first_seen": "2025-01-15T08:00:00.000Z",
+            "name": "Operation Nightfall",
+            "description": "A sustained campaign targeting financial institutions.",
+        }
+    )
+
+    assert not validation_result.is_valid
+    assert len(validation_result.errors) == 1
+    assert (
+        validation_result.errors[0].description
+        == "campaign: Value error, last_seen cannot be before first_seen [value_error]"
+    )
+
+
+def test_bad_killchain_shoulds() -> None:
+    validator = STIX2Validator()
+    validation_result = validator.validate_entity(
+        {
+            "type": "attack-pattern",
+            "spec_version": "2.1",
+            "id": "attack-pattern--0c7b5b88-8ff7-4a4d-aa9d-feb398cd0061",
+            "created": "2024-01-15T08:00:00.000Z",
+            "modified": "2024-01-15T08:00:00.000Z",
+            "name": "Spear Phishing",
+            "kill_chain_phases": [{"kill_chain_name": "FOO", "phase_name": "pre_attack"}],
+            "description": "A targeted phishing attack against specific individuals.",
+        }
+    )
+
+    assert validation_result.is_valid
+    assert len(validation_result.warnings) == 2
+    assert validation_result.warnings[0].description == "kill_chain_name should be lowercase"
+    assert validation_result.warnings[1].description == "phase_name should not contain spaces or underscores"
 
 
 def test_empty_listy() -> None:

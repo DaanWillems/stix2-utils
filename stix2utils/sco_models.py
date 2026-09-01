@@ -56,6 +56,10 @@ class STIXCyberObservable(BaseModel):
             raise ValueError(msg)
         return self
 
+    def should(self) -> list[str]:
+        return []
+    
+
 
 class EncryptionAlgorithm(str, Enum):
     AES_256_GCM = "AES-256-GCM"
