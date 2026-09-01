@@ -84,7 +84,7 @@ class Grouping(STIXDomainObject):
 class Identity(STIXDomainObject):
     type: Literal["identity"] = "identity"
     name: str
-    identity_class: str
+    identity_class: str | None = None
     description: str | None = None
     roles: Annotated[list[str], Field(min_length=1)] | None = None
     sectors: Annotated[list[str], Field(min_length=1)] | None = None
