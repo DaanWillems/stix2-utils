@@ -114,8 +114,7 @@ def test_identity() -> None:
             "id": "identity--8e2e2d2b-17d4-4cbf-938f-98ee46b3cd43",
             "created": "2024-01-15T08:00:00.000Z",
             "modified": "2024-01-15T08:00:00.000Z",
-            "name": "ACME Corporation",
-            "identity_class": "organization",
+            "name": "ACME Corporation"
         }
     )
 
@@ -358,5 +357,5 @@ def test_marking() -> None:
         }
     )
 
-    assert validation_result.success
+    assert validation_result.is_valid
     assert len(validation_result.errors) == 0
