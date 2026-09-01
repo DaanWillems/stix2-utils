@@ -120,7 +120,7 @@ ALLOWED_RELATIONSHIPS: dict[tuple[str, str], set[str]] = {
     ("malware", "variant-of"): {"malware"},
     # --- Malware Analysis ---
     ("malware-analysis", "characterizes"): {"malware"},
-    ("malware-analysis", "analysis-of"): {"malware"},
+    ("malware-analysis", "av-analysis-of"): {"malware"},
     ("malware-analysis", "static-analysis-of"): {"malware"},
     ("malware-analysis", "dynamic-analysis-of"): {"malware"},
     # --- Threat Actor ---
