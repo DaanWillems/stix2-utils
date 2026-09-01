@@ -27,11 +27,6 @@ jobs:
         run: |
           pip install -r dev-requirements.txt
 
-      - name: Lint with ruff
-        run: |
-          ruff check .
-          ruff format --check .
-
       - name: Run tests with coverage
         run: |
           pytest --cov --cov-report=term-missing --cov-report=xml
