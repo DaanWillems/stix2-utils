@@ -41,3 +41,6 @@ class MarkingDefinition(BaseModel):
             msg = "either definition_type/definition or extensions must be present"
             raise ValueError(msg)
         return self
+
+    def should(self) -> list[str]:
+        return []

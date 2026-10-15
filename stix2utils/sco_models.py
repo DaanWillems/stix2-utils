@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from enum import Enum
+import enum
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -56,8 +56,11 @@ class STIXCyberObservable(BaseModel):
             raise ValueError(msg)
         return self
 
+    def should(self) -> list[str]:
+        return []
 
-class EncryptionAlgorithm(str, Enum):
+
+class EncryptionAlgorithm(enum.StrEnum):
     AES_256_GCM = "AES-256-GCM"
     CHACHA20_POLY1305 = "ChaCha20-Poly1305"
     MIME_TYPE_INDICATED = "mime-type-indicated"
@@ -418,7 +421,7 @@ class ICMPExt(BaseModel):
     icmp_code_hex: Hex
 
 
-class NetworkSocketAddressFamily(str, Enum):
+class NetworkSocketAddressFamily(enum.StrEnum):
     AF_UNSPEC = "AF_UNSPEC"
     AF_INET = "AF_INET"
     AF_IPX = "AF_IPX"
@@ -429,7 +432,7 @@ class NetworkSocketAddressFamily(str, Enum):
     AF_BTH = "AF_BTH"
 
 
-class NetworkSocketType(str, Enum):
+class NetworkSocketType(enum.StrEnum):
     SOCK_STREAM = "SOCK_STREAM"
     SOCK_DGRAM = "SOCK_DGRAM"
     SOCK_RAW = "SOCK_RAW"
@@ -504,7 +507,7 @@ class NetworkTraffic(STIXCyberObservable):
         return self
 
 
-class WindowsIntegrityLevel(str, Enum):
+class WindowsIntegrityLevel(enum.StrEnum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -530,7 +533,7 @@ class WindowsProcessExt(BaseModel):
         return self
 
 
-class WindowsServiceStartType(str, Enum):
+class WindowsServiceStartType(enum.StrEnum):
     SERVICE_AUTO_START = "SERVICE_AUTO_START"
     SERVICE_BOOT_START = "SERVICE_BOOT_START"
     SERVICE_DEMAND_START = "SERVICE_DEMAND_START"
@@ -538,14 +541,14 @@ class WindowsServiceStartType(str, Enum):
     SERVICE_SYSTEM_ALERT = "SERVICE_SYSTEM_ALERT"
 
 
-class WindowsServiceType(str, Enum):
+class WindowsServiceType(enum.StrEnum):
     SERVICE_KERNEL_DRIVER = "SERVICE_KERNEL_DRIVER"
     SERVICE_FILE_SYSTEM_DRIVER = "SERVICE_FILE_SYSTEM_DRIVER"
     SERVICE_WIN32_OWN_PROCESS = "SERVICE_WIN32_OWN_PROCESS"
     SERVICE_WIN32_SHARE_PROCESS = "SERVICE_WIN32_SHARE_PROCESS"
 
 
-class WindowsServiceStatus(str, Enum):
+class WindowsServiceStatus(enum.StrEnum):
     SERVICE_CONTINUE_PENDING = "SERVICE_CONTINUE_PENDING"
     SERVICE_PAUSE_PENDING = "SERVICE_PAUSE_PENDING"
     SERVICE_PAUSED = "SERVICE_PAUSED"
@@ -699,7 +702,7 @@ class UserAccount(STIXCyberObservable):
         return self
 
 
-class WindowsRegistryDatatype(str, Enum):
+class WindowsRegistryDatatype(enum.StrEnum):
     REG_NONE = "REG_NONE"
     REG_SZ = "REG_SZ"
     REG_EXPAND_SZ = "REG_EXPAND_SZ"

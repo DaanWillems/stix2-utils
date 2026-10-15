@@ -114,7 +114,7 @@ def test_identity() -> None:
             "id": "identity--8e2e2d2b-17d4-4cbf-938f-98ee46b3cd43",
             "created": "2024-01-15T08:00:00.000Z",
             "modified": "2024-01-15T08:00:00.000Z",
-            "name": "ACME Corporation"
+            "name": "ACME Corporation",
         }
     )
 

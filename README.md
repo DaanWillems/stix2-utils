@@ -25,12 +25,21 @@ print(validation_result.errors)
 
 The object is available in the validation result under the .obj key. If the input was not valid, the .obj will be None. 
 
+Additionally the validator also returns a list of warnings. A warning is generated when the object does not follow the 'shoulds' defined in the STIX 2.1 specification.
+
+
+```python
+print(validation_result.warnings)
+```
+
 ### Pattern parsing
 You can use the STIX 2.1 pattern parser to convert a pattern string into an AST. 
 
 
 ```python
-ast = Parser().parse("[ network-traffic:src_ref.value = '203.0.113.10' AND network-traffic:dst_ref.value != '198.51.100.58' OR network-traffic:dst_ref.value = '127.0.0.1' ] OR [ipv4-addr:value = '198.51.100.0']")
+ast = Parser().parse(
+    "[ network-traffic:src_ref.value = '203.0.113.10' AND network-traffic:dst_ref.value != '198.51.100.58' OR network-traffic:dst_ref.value = '127.0.0.1' ] OR [ipv4-addr:value = '198.51.100.0']"
+)
 ```
 Returns an AST that looks like this:
 ```
