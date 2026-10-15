@@ -2,6 +2,6 @@ from enum import Enum
 
 
 class GroupingContextOv(Enum):
-    suspiciousActivity = "suspicious-activity"
-    malwareAnalysis = "malware-analysis"
+    suspicious_activity = "suspicious-activity"
+    malware_analysis = "malware-analysis"
     unspecified = "unspecified"

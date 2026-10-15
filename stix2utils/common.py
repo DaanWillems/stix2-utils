@@ -1,4 +1,4 @@
-from enum import Enum
+import enum
 from typing import Annotated
 
 from pydantic import Field
@@ -29,7 +29,7 @@ Hex = Annotated[str, Field(pattern=r"^(?:[0-9a-f]{2})+$")]
 Hashes = Annotated[dict[str, str], Field(min_length=1)]
 
 
-class HashAlgorithm(str, Enum):
+class HashAlgorithm(enum.StrEnum):
     MD5 = "MD5"
     SHA_1 = "SHA-1"
     SHA_256 = "SHA-256"

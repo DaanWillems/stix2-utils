@@ -44,4 +44,3 @@ class MarkingDefinition(BaseModel):
 
     def should(self) -> list[str]:
         return []
-

@@ -85,13 +85,14 @@ def test_indicator_until_before_from() -> None:
             "confidence": 21,
             "pattern_version": "2.1",
             "valid_until": "2026-01-15T08:00:00.000Z",
-            "valid_from": "2027-01-15T08:00:00.000Z"
+            "valid_from": "2027-01-15T08:00:00.000Z",
         }
     )
 
     assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
     assert validation_result.errors[0].description == "indicator: Value error, valid_until cannot be before valid_from [value_error]"
+
 
 def test_missing_required_field_id_pattern() -> None:
     validator = STIX2Validator()
@@ -254,6 +255,7 @@ def test_bad_killchain() -> None:
         == "attack-pattern.kill_chain_phases.0.woops: Extra inputs are not permitted [extra_forbidden]"
     )
 
+
 def test_campaign_last_before_first() -> None:
     validator = STIX2Validator()
     validation_result = validator.validate_entity(
@@ -272,10 +274,7 @@ def test_campaign_last_before_first() -> None:
 
     assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
-    assert (
-        validation_result.errors[0].description
-        == "campaign: Value error, last_seen cannot be before first_seen [value_error]"
-    )
+    assert validation_result.errors[0].description == "campaign: Value error, last_seen cannot be before first_seen [value_error]"
 
 
 def test_bad_killchain_shoulds() -> None:

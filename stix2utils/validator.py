@@ -4,7 +4,6 @@ from typing import Any
 from pydantic import ValidationError
 
 from stix2utils.adapter import stix_adapter
-from stix2utils.common import ShouldError
 from stix2utils.sco_models import STIXCyberObservable
 from stix2utils.sdo_models import STIXDomainObject
 from stix2utils.sro_models import STIXRelationshipObject

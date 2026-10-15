@@ -115,7 +115,6 @@ def test_identity() -> None:
             "created": "2024-01-15T08:00:00.000Z",
             "modified": "2024-01-15T08:00:00.000Z",
             "name": "ACME Corporation",
-            "identity_class": "organization",
         }
     )
 
