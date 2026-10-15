@@ -25,6 +25,13 @@ print(validation_result.errors)
 
 The object is available in the validation result under the .obj key. If the input was not valid, the .obj will be None. 
 
+Additionally the validator also returns a list of warnings. A warning is generated when the object does not follow the 'shoulds' defined in the STIX 2.1 specification.
+
+
+```python
+print(validation_result.warnings)
+```
+
 ### Pattern parsing
 You can use the STIX 2.1 pattern parser to convert a pattern string into an AST. 
 
