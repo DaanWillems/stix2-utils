@@ -91,7 +91,7 @@ class Campaign(STIXDomainObject):
 
     @model_validator(mode="after")
     def _not_last_before_first(self) -> Campaign:
-        if self.last_observed is not None and self.first_observed is not None and self.last_observed < self.first_observed:
+        if self.last_seen is not None and self.first_seen is not None and self.last_seen < self.first_seen:
             msg = "last_seen cannot be before first_seen"
             raise ValueError(msg)
         return self
@@ -161,7 +161,7 @@ class Infrastructure(STIXDomainObject):
 
     @model_validator(mode="after")
     def _not_last_before_first(self) -> Campaign:
-        if self.last_observed is not None and self.first_observed is not None and self.last_observed < self.first_observed:
+        if self.last_seen is not None and self.first_seen is not None and self.last_seen < self.first_seen:
             msg = "last_seen cannot be before first_seen"
             raise ValueError(msg)
         return self
@@ -181,7 +181,7 @@ class IntrusionSet(STIXDomainObject):
 
     @model_validator(mode="after")
     def _not_last_before_first(self) -> Campaign:
-        if self.last_observed is not None and self.first_observed is not None and self.last_observed < self.first_observed:
+        if self.last_seen is not None and self.first_seen is not None and self.last_seen < self.first_seen:
             msg = "last_seen cannot be before first_seen"
             raise ValueError(msg)
         return self
@@ -241,7 +241,7 @@ class Malware(STIXDomainObject):
 
     @model_validator(mode="after")
     def _not_last_before_first(self) -> Campaign:
-        if self.last_observed is not None and self.first_observed is not None and self.last_observed < self.first_observed:
+        if self.last_seen is not None and self.first_seen is not None and self.last_seen < self.first_seen:
             msg = "last_seen cannot be before first_seen"
             raise ValueError(msg)
         return self
