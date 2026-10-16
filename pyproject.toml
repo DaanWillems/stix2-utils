@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "stix2-utils"
-version = "0.0.6"
+version = "0.0.7"
 requires-python = ">= 3.13"
 description = "Utility library for validating stix2 entities and patterns"
 readme = "README.md"
