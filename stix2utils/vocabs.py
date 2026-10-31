@@ -8,6 +8,7 @@ The values below are copied verbatim from the specification.
 """
 
 import enum
+from dataclasses import dataclass
 from typing import ClassVar
 
 
@@ -452,3 +453,16 @@ class WindowsPEBinaryTypeOv(OpenVocabulary):
     DLL = "dll"
     EXE = "exe"
     SYS = "sys"
+
+
+@dataclass(frozen=True)
+class OpenVocab:
+    """``Annotated`` marker: the value(s) of this field SHOULD come from ``vocab``.
+
+    Applies to a string, to each item of a list of strings, or, with ``keys=True``,
+    to each key of a dictionary (e.g. ``hashes`` keys come from ``hash-algorithm-ov``).
+    The marker is metadata only; custom values remain valid.
+    """
+
+    vocab: type[OpenVocabulary]
+    keys: bool = False

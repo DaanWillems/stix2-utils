@@ -2,7 +2,7 @@ from typing import Annotated
 
 from pydantic import Field
 
-from stix2utils.vocabs import HashAlgorithmOv
+from stix2utils.vocabs import HashAlgorithmOv, OpenVocab
 
 # Backwards-compatible alias; the vocabulary now lives in stix2utils.vocabs.
 HashAlgorithm = HashAlgorithmOv
@@ -30,7 +30,7 @@ Hex = Annotated[str, Field(pattern=r"^(?:[0-9a-f]{2})+$")]
 
 # A hashes dictionary: keys are algorithm names, values are hash strings.
 # Keys should come from hash-algorithm-ov, dictionary keys 3-250 ASCII chars.
-Hashes = Annotated[dict[str, str], Field(min_length=1)]
+Hashes = Annotated[dict[str, str], Field(min_length=1), OpenVocab(HashAlgorithmOv, keys=True)]
 
 
 # ---------------------------------------------------------------------------
