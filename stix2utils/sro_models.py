@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from stix2utils.common import SCO_TYPES, SDO_TYPES, Timestamp
 from stix2utils.references import _UUID, AnyRef, IdentityOrLocationRef, IdentityRef, MarkingRef, ObservedDataRef
+from stix2utils.vocabs import open_vocab_warnings
 
 # relationship_type: ASCII a-z, 0-9, hyphen; no leading/trailing/double hyphen.
 _RELATIONSHIP_TYPE_RE = r"^[a-z0-9]+(-[a-z0-9]+)*$"
@@ -238,7 +239,7 @@ class STIXRelationshipObject(BaseModel):
         return self
 
     def should(self) -> list[str]:
-        return []
+        return open_vocab_warnings(self)
 
 
 class Relationship(STIXRelationshipObject):

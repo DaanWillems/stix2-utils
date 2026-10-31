@@ -25,7 +25,7 @@ from stix2utils.references import (
     ProcessRef,
     UserAccountRef,
 )
-from stix2utils.vocabs import AccountTypeOv, OpenVocab, WindowsPEBinaryTypeOv
+from stix2utils.vocabs import AccountTypeOv, OpenVocab, WindowsPEBinaryTypeOv, open_vocab_warnings
 
 
 class STIXCyberObservable(BaseModel):
@@ -58,7 +58,7 @@ class STIXCyberObservable(BaseModel):
         return self
 
     def should(self) -> list[str]:
-        return []
+        return open_vocab_warnings(self)
 
 
 class EncryptionAlgorithm(enum.StrEnum):

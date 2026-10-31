@@ -28,6 +28,7 @@ from stix2utils.vocabs import (
     ThreatActorSophisticationOv,
     ThreatActorTypeOv,
     ToolTypeOv,
+    open_vocab_warnings,
 )
 
 
@@ -64,7 +65,7 @@ class STIXDomainObject(BaseModel):
         return self
 
     def should(self) -> list[str]:
-        return []
+        return open_vocab_warnings(self)
 
 
 # should

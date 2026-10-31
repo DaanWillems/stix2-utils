@@ -9,7 +9,10 @@ The values below are copied verbatim from the specification.
 
 import enum
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import Annotated, Any, ClassVar, get_args, get_origin
+
+from pydantic import BaseModel
+from pydantic.fields import FieldInfo
 
 
 class OpenVocabulary(enum.StrEnum):
@@ -466,3 +469,73 @@ class OpenVocab:
 
     vocab: type[OpenVocabulary]
     keys: bool = False
+
+
+# ---------------------------------------------------------------------------
+# Checking
+# ---------------------------------------------------------------------------
+
+
+def _markers_in(annotation: Any) -> list[OpenVocab]:  # noqa: ANN401
+    """Collect OpenVocab markers nested anywhere in a type annotation (e.g. inside ``X | None``)."""
+    found: list[OpenVocab] = []
+    if get_origin(annotation) is Annotated:
+        found.extend(m for m in annotation.__metadata__ if isinstance(m, OpenVocab))
+    for arg in get_args(annotation):
+        found.extend(_markers_in(arg))
+    return found
+
+
+def _find_marker(field: FieldInfo) -> OpenVocab | None:
+    for marker in field.metadata:
+        if isinstance(marker, OpenVocab):
+            return marker
+    nested = _markers_in(field.annotation)
+    return nested[0] if nested else None
+
+
+def _check_value(marker: OpenVocab, value: Any, loc: str) -> list[str]:  # noqa: ANN401
+    vocab = marker.vocab
+    if marker.keys and isinstance(value, dict):
+        candidates = list(value.keys())
+    elif isinstance(value, list):
+        candidates = value
+    else:
+        candidates = [value]
+    return [
+        f"{loc}: {'key ' if marker.keys else ''}{item!r} is not a value in {vocab.__vocab_name__}"
+        for item in candidates
+        if isinstance(item, str) and not vocab.contains(item)
+    ]
+
+
+def _nested_warnings(value: Any, loc: str) -> list[str]:  # noqa: ANN401
+    if isinstance(value, BaseModel):
+        return open_vocab_warnings(value, f"{loc}.")
+    warnings: list[str] = []
+    if isinstance(value, list):
+        for i, item in enumerate(value):
+            warnings.extend(_nested_warnings(item, f"{loc}.{i}"))
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            warnings.extend(_nested_warnings(item, f"{loc}.{key}"))
+    return warnings
+
+
+def open_vocab_warnings(model: BaseModel, path: str = "") -> list[str]:
+    """Return a warning for every open-vocabulary value in ``model`` that is not in its vocabulary.
+
+    Nested models (extensions, sub-objects) are checked recursively; ``path`` prefixes the
+    reported location. Comparison is case-sensitive.
+    """
+    warnings: list[str] = []
+    for name, field in type(model).model_fields.items():
+        value = getattr(model, name)
+        if value is None:
+            continue
+        loc = f"{path}{field.alias or name}"
+        marker = _find_marker(field)
+        if marker is not None:
+            warnings.extend(_check_value(marker, value, loc))
+        warnings.extend(_nested_warnings(value, loc))
+    return warnings
