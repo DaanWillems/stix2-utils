@@ -65,7 +65,10 @@ class STIXDomainObject(BaseModel):
         return self
 
     def should(self) -> list[str]:
-        return open_vocab_warnings(self)
+        warnings = open_vocab_warnings(self)
+        for kill_chain_phase in getattr(self, "kill_chain_phases", None) or []:
+            warnings += kill_chain_phase.should()
+        return warnings
 
 
 # should
@@ -83,7 +86,7 @@ class KillChainPhase(BaseModel):
             warnings.append("kill_chain_name should not contain spaces or underscores")
         if not self.phase_name.islower():
             warnings.append("phase_name should be lowercase")
-        if "_" in self.phase_name or " " in self.kill_chain_name:
+        if "_" in self.phase_name or " " in self.phase_name:
             warnings.append("phase_name should not contain spaces or underscores")
         return warnings
 
@@ -95,12 +98,6 @@ class AttackPattern(STIXDomainObject):
     description: str | None = None
     aliases: Annotated[list[str], Field(min_length=1)] | None = None
     kill_chain_phases: Annotated[list[KillChainPhase], Field(min_length=1)] | None = None
-
-    def should(self) -> list[str]:
-        warnings = []
-        for kill_chain_phase in self.kill_chain_phases:
-            warnings += kill_chain_phase.should()
-        return warnings
 
 
 class Campaign(STIXDomainObject):
@@ -164,12 +161,12 @@ class Indicator(STIXDomainObject):
         return self
 
     def should(self) -> list[str]:
-        warnings = []
+        warnings = super().should()
         if self.name is None:
             warnings.append("name is missing")
         if self.description is None:
             warnings.append("description is missing")
-        return self
+        return warnings
 
 
 class Infrastructure(STIXDomainObject):
