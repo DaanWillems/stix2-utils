@@ -1,7 +1,11 @@
-import enum
 from typing import Annotated
 
 from pydantic import Field
+
+from stix2utils.vocabs import HashAlgorithmOv
+
+# Backwards-compatible alias; the vocabulary now lives in stix2utils.vocabs.
+HashAlgorithm = HashAlgorithmOv
 
 
 class ShouldError(Exception):
@@ -27,17 +31,6 @@ Hex = Annotated[str, Field(pattern=r"^(?:[0-9a-f]{2})+$")]
 # A hashes dictionary: keys are algorithm names, values are hash strings.
 # Keys should come from hash-algorithm-ov, dictionary keys 3-250 ASCII chars.
 Hashes = Annotated[dict[str, str], Field(min_length=1)]
-
-
-class HashAlgorithm(enum.StrEnum):
-    MD5 = "MD5"
-    SHA_1 = "SHA-1"
-    SHA_256 = "SHA-256"
-    SHA_512 = "SHA-512"
-    SHA3_256 = "SHA3-256"
-    SHA3_512 = "SHA3-512"
-    SSDEEP = "SSDEEP"
-    TLSH = "TLSH"
 
 
 # ---------------------------------------------------------------------------
