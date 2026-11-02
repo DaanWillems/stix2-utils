@@ -71,6 +71,24 @@ The validator accepts every STIX 2.1 SDO, SCO and SRO, the Marking Definition, E
 
 Custom objects (types starting with `x-`, deprecated since STIX 2.1 in favour of extension definitions) are not supported: an object with an unknown `type` is reported as invalid, and so is a Bundle that contains one. Custom properties should be added through the `extensions` property, whose keys must be an `extension-definition--<uuid>` id (or a deprecated `x-` name).
 
+### Strict mode
+By default the validator runs in strict mode: any property that is not defined in the STIX 2.1 specification, such as custom `x_*` properties, is reported as an error.
+
+```python
+validator = STIX2Validator()  # strict=True by default
+result = validator.validate_entity({..., "x_custom_score": 7})
+print(result.errors)  # [... x_custom_score: Extra inputs are not permitted [extra_forbidden]]
+```
+
+Set `strict=False` to accept additional properties. This also applies to nested objects (such as kill chain phases) and to objects inside a bundle. The extra properties are kept on the parsed object and can be read through `model_extra`.
+
+```python
+validator = STIX2Validator(strict=False)
+result = validator.validate_entity({..., "x_custom_score": 7})
+print(result.is_valid)            # True
+print(result.obj.model_extra)     # {'x_custom_score': 7}
+```
+
 ### Pattern parsing
 You can use the STIX 2.1 pattern parser to convert a pattern string into an AST. 
 

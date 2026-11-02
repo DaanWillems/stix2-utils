@@ -25,9 +25,22 @@ class STIX2ValidationResult:
 
 
 class STIX2Validator:
+    """Validates STIX 2.1 objects and bundles.
+
+    Args:
+        strict: When ``True`` (the default), properties that are not defined in the
+            STIX 2.1 specification (e.g. custom ``x_*`` properties) are rejected with an
+            ``extra_forbidden`` error. When ``False``, such additional properties are
+            accepted, including on nested objects and objects inside a bundle, and are
+            available on the parsed object via ``model_extra``.
+    """
+
+    def __init__(self, *, strict: bool = True) -> None:
+        self.strict = strict
+
     def validate_entity(self, obj: dict[str, Any]) -> STIX2ValidationResult:
         try:
-            result_object: STIXObject | Bundle = stix_toplevel_adapter.validate_python(obj)
+            result_object: STIXObject | Bundle = stix_toplevel_adapter.validate_python(obj, extra="forbid" if self.strict else "allow")
         except ValidationError as e:
             stix2_validation_errors = []
 

@@ -12,7 +12,7 @@ authors = [
     { name = "Daan Willems", email = "daan@daan.nl" }
 ]
 dependencies = [
-    "pydantic"
+    "pydantic>=2.12"
 ]
 [project.optional-dependencies]
 dev = [
