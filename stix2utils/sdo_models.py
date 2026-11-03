@@ -7,6 +7,29 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from stix2utils.common import Timestamp
 from stix2utils.references import _UUID, AnyRef, IdentityRef, MarkingRef, SampleRef, SoftwareRef
+from stix2utils.vocabs import (
+    AttackMotivationOv,
+    AttackResourceLevelOv,
+    GroupingContextOv,
+    IdentityClassOv,
+    ImplementationLanguageOv,
+    IndicatorTypeOv,
+    IndustrySectorOv,
+    InfrastructureTypeOv,
+    MalwareCapabilitiesOv,
+    MalwareResultOv,
+    MalwareTypeOv,
+    OpenVocab,
+    PatternTypeOv,
+    ProcessorArchitectureOv,
+    RegionOv,
+    ReportTypeOv,
+    ThreatActorRoleOv,
+    ThreatActorSophisticationOv,
+    ThreatActorTypeOv,
+    ToolTypeOv,
+    open_vocab_warnings,
+)
 
 
 class STIXDomainObject(BaseModel):
@@ -42,7 +65,10 @@ class STIXDomainObject(BaseModel):
         return self
 
     def should(self) -> list[str]:
-        return []
+        warnings = open_vocab_warnings(self)
+        for kill_chain_phase in getattr(self, "kill_chain_phases", None) or []:
+            warnings += kill_chain_phase.should()
+        return warnings
 
 
 # should
@@ -60,7 +86,7 @@ class KillChainPhase(BaseModel):
             warnings.append("kill_chain_name should not contain spaces or underscores")
         if not self.phase_name.islower():
             warnings.append("phase_name should be lowercase")
-        if "_" in self.phase_name or " " in self.kill_chain_name:
+        if "_" in self.phase_name or " " in self.phase_name:
             warnings.append("phase_name should not contain spaces or underscores")
         return warnings
 
@@ -72,12 +98,6 @@ class AttackPattern(STIXDomainObject):
     description: str | None = None
     aliases: Annotated[list[str], Field(min_length=1)] | None = None
     kill_chain_phases: Annotated[list[KillChainPhase], Field(min_length=1)] | None = None
-
-    def should(self) -> list[str]:
-        warnings = []
-        for kill_chain_phase in self.kill_chain_phases:
-            warnings += kill_chain_phase.should()
-        return warnings
 
 
 class Campaign(STIXDomainObject):
@@ -105,7 +125,7 @@ class CourseOfAction(STIXDomainObject):
 
 class Grouping(STIXDomainObject):
     type: Literal["grouping"] = "grouping"
-    context: str
+    context: Annotated[str, OpenVocab(GroupingContextOv)]
     object_refs: Annotated[list[AnyRef], Field(min_length=1)]
     name: str | None = None
     description: str | None = None
@@ -114,18 +134,18 @@ class Grouping(STIXDomainObject):
 class Identity(STIXDomainObject):
     type: Literal["identity"] = "identity"
     name: str
-    identity_class: str | None = None
+    identity_class: Annotated[str, OpenVocab(IdentityClassOv)] | None = None
     description: str | None = None
     roles: Annotated[list[str], Field(min_length=1)] | None = None
-    sectors: Annotated[list[str], Field(min_length=1)] | None = None
+    sectors: Annotated[list[str], Field(min_length=1), OpenVocab(IndustrySectorOv)] | None = None
     contact_information: str | None = None
 
 
 class Indicator(STIXDomainObject):
     type: Literal["indicator"] = "indicator"
-    indicator_types: Annotated[list[str], Field(min_length=1)] | None = None
+    indicator_types: Annotated[list[str], Field(min_length=1), OpenVocab(IndicatorTypeOv)] | None = None
     pattern: str
-    pattern_type: str
+    pattern_type: Annotated[str, OpenVocab(PatternTypeOv)]
     valid_from: str
     name: str | None = None
     description: str | None = None
@@ -141,19 +161,19 @@ class Indicator(STIXDomainObject):
         return self
 
     def should(self) -> list[str]:
-        warnings = []
+        warnings = super().should()
         if self.name is None:
             warnings.append("name is missing")
         if self.description is None:
             warnings.append("description is missing")
-        return self
+        return warnings
 
 
 class Infrastructure(STIXDomainObject):
     type: Literal["infrastructure"] = "infrastructure"
     name: str
     description: str | None = None
-    infrastructure_types: Annotated[list[str], Field(min_length=1)] | None = None
+    infrastructure_types: Annotated[list[str], Field(min_length=1), OpenVocab(InfrastructureTypeOv)] | None = None
     aliases: Annotated[list[str], Field(min_length=1)] | None = None
     kill_chain_phases: Annotated[list[KillChainPhase], Field(min_length=1)] | None = None
     first_seen: Timestamp | None = None
@@ -175,9 +195,9 @@ class IntrusionSet(STIXDomainObject):
     first_seen: Timestamp | None = None
     last_seen: Timestamp | None = None
     goals: Annotated[list[str], Field(min_length=1)] | None = None
-    resource_level: str | None = None
-    primary_motivation: str | None = None
-    secondary_motivations: Annotated[list[str], Field(min_length=1)] | None = None
+    resource_level: Annotated[str, OpenVocab(AttackResourceLevelOv)] | None = None
+    primary_motivation: Annotated[str, OpenVocab(AttackMotivationOv)] | None = None
+    secondary_motivations: Annotated[list[str], Field(min_length=1), OpenVocab(AttackMotivationOv)] | None = None
 
     @model_validator(mode="after")
     def _not_last_before_first(self) -> Campaign:
@@ -199,7 +219,7 @@ class Location(STIXDomainObject):
     latitude: Latitude | None = None
     longitude: Longitude | None = None
     precision: Precision | None = None
-    region: str | None = None
+    region: Annotated[str, OpenVocab(RegionOv)] | None = None
     country: str | None = None
     administrative_area: str | None = None
     city: str | None = None
@@ -228,15 +248,15 @@ class Malware(STIXDomainObject):
     is_family: bool
     name: str | None = None
     description: str | None = None
-    malware_types: Annotated[list[str], Field(min_length=1)] | None = None
+    malware_types: Annotated[list[str], Field(min_length=1), OpenVocab(MalwareTypeOv)] | None = None
     aliases: Annotated[list[str], Field(min_length=1)] | None = None
     kill_chain_phases: Annotated[list[KillChainPhase], Field(min_length=1)] | None = None
     first_seen: Timestamp | None = None
     last_seen: Timestamp | None = None
     operating_system_refs: Annotated[list[SoftwareRef], Field(min_length=1)] | None = None
-    architecture_execution_envs: Annotated[list[str], Field(min_length=1)] | None = None
-    implementation_languages: Annotated[list[str], Field(min_length=1)] | None = None
-    capabilities: Annotated[list[str], Field(min_length=1)] | None = None
+    architecture_execution_envs: Annotated[list[str], Field(min_length=1), OpenVocab(ProcessorArchitectureOv)] | None = None
+    implementation_languages: Annotated[list[str], Field(min_length=1), OpenVocab(ImplementationLanguageOv)] | None = None
+    capabilities: Annotated[list[str], Field(min_length=1), OpenVocab(MalwareCapabilitiesOv)] | None = None
     sample_refs: Annotated[list[SampleRef], Field(min_length=1)] | None = None
 
     @model_validator(mode="after")
@@ -262,7 +282,7 @@ class MalwareAnalysis(STIXDomainObject):
     analysis_started: str | None = None
     analysis_ended: str | None = None
     result_name: str | None = None
-    result: str | None = None
+    result: Annotated[str, OpenVocab(MalwareResultOv)] | None = None
     analysis_sco_refs: Annotated[list[AnyRef], Field(min_length=1)] | None = None
     sample_ref: SampleRef | None = None
 
@@ -310,7 +330,7 @@ class Opinion(STIXDomainObject):
 class Report(STIXDomainObject):
     type: Literal["report"] = "report"
     name: str
-    report_types: Annotated[list[str], Field(min_length=1)]
+    report_types: Annotated[list[str], Field(min_length=1), OpenVocab(ReportTypeOv)]
     published: str
     object_refs: Annotated[list[AnyRef], Field(min_length=1)]
     description: str | None = None
@@ -319,18 +339,18 @@ class Report(STIXDomainObject):
 class ThreatActor(STIXDomainObject):
     type: Literal["threat-actor"] = "threat-actor"
     name: str
-    threat_actor_types: Annotated[list[str], Field(min_length=1)]
+    threat_actor_types: Annotated[list[str], Field(min_length=1), OpenVocab(ThreatActorTypeOv)]
     description: str | None = None
     aliases: Annotated[list[str], Field(min_length=1)] | None = None
     first_seen: Timestamp | None = None
     last_seen: Timestamp | None = None
-    roles: Annotated[list[str], Field(min_length=1)] | None = None
+    roles: Annotated[list[str], Field(min_length=1), OpenVocab(ThreatActorRoleOv)] | None = None
     goals: Annotated[list[str], Field(min_length=1)] | None = None
-    sophistication: str | None = None
-    resource_level: str | None = None
-    primary_motivation: str | None = None
-    secondary_motivations: Annotated[list[str], Field(min_length=1)] | None = None
-    personal_motivations: Annotated[list[str], Field(min_length=1)] | None = None
+    sophistication: Annotated[str, OpenVocab(ThreatActorSophisticationOv)] | None = None
+    resource_level: Annotated[str, OpenVocab(AttackResourceLevelOv)] | None = None
+    primary_motivation: Annotated[str, OpenVocab(AttackMotivationOv)] | None = None
+    secondary_motivations: Annotated[list[str], Field(min_length=1), OpenVocab(AttackMotivationOv)] | None = None
+    personal_motivations: Annotated[list[str], Field(min_length=1), OpenVocab(AttackMotivationOv)] | None = None
 
     @model_validator(mode="after")
     def _not_last_before_first(self) -> Campaign:
@@ -343,7 +363,7 @@ class ThreatActor(STIXDomainObject):
 class Tool(STIXDomainObject):
     type: Literal["tool"] = "tool"
     name: str
-    tool_types: Annotated[list[str], Field(min_length=1)]
+    tool_types: Annotated[list[str], Field(min_length=1), OpenVocab(ToolTypeOv)]
     description: str | None = None
     aliases: Annotated[list[str], Field(min_length=1)] | None = None
     kill_chain_phases: list[KillChainPhase] | None = None

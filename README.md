@@ -32,6 +32,40 @@ Additionally the validator also returns a list of warnings. A warning is generat
 print(validation_result.warnings)
 ```
 
+#### Open vocabularies
+Many STIX 2.1 properties take their values from an *open vocabulary* (section 10 of the specification), for example `indicator_types` (`indicator-type-ov`), `malware_types` (`malware-type-ov`) or the keys of a `hashes` dictionary (`hash-algorithm-ov`). The specification says these values SHOULD come from the vocabulary but allows custom values, so a value outside the vocabulary is reported as a **warning**; the object stays valid. The comparison is case-sensitive, so `Malicious-Activity` is reported just like any other unknown value.
+
+```python
+validation_result = validator.validate_entity(
+    {
+        "type": "malware",
+        "spec_version": "2.1",
+        "id": "malware--0c7b5b88-8ff7-4a4d-aa9d-feb398cd0061",
+        "created": "2024-01-15T08:00:00.000Z",
+        "modified": "2024-01-15T08:00:00.000Z",
+        "name": "Example",
+        "is_family": True,
+        "malware_types": ["ransomware", "cryptominer"],
+    }
+)
+
+print(validation_result.is_valid)  # True
+print(validation_result.warnings[0].description)
+# malware_types: 'cryptominer' is not a value in malware-type-ov
+```
+
+Warnings for nested properties include the full path (e.g. `extensions.windows-pebinary-ext.pe_type`), and warnings for objects inside a bundle are prefixed with `objects.N (id)`.
+
+All open vocabularies are available as `StrEnum`s in `stix2utils.vocabs`:
+
+```python
+from stix2utils.vocabs import IndicatorTypeOv
+
+IndicatorTypeOv.MALICIOUS_ACTIVITY  # "malicious-activity"
+IndicatorTypeOv.contains("benign")  # True
+IndicatorTypeOv.__vocab_name__  # "indicator-type-ov"
+```
+
 ### Pattern parsing
 You can use the STIX 2.1 pattern parser to convert a pattern string into an AST. 
 

@@ -25,6 +25,7 @@ from stix2utils.references import (
     ProcessRef,
     UserAccountRef,
 )
+from stix2utils.vocabs import AccountTypeOv, OpenVocab, WindowsPEBinaryTypeOv, open_vocab_warnings
 
 
 class STIXCyberObservable(BaseModel):
@@ -57,7 +58,7 @@ class STIXCyberObservable(BaseModel):
         return self
 
     def should(self) -> list[str]:
-        return []
+        return open_vocab_warnings(self)
 
 
 class EncryptionAlgorithm(enum.StrEnum):
@@ -301,7 +302,7 @@ class WindowsPESectionType(BaseModel):
 class WindowsPEBinaryExt(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    pe_type: str  # windows-pebinary-type-ov (open): dll, exe, sys
+    pe_type: Annotated[str, OpenVocab(WindowsPEBinaryTypeOv)]
     imphash: str | None = None
     machine_hex: Hex | None = None
     number_of_sections: int | None = None
@@ -664,7 +665,7 @@ class UserAccount(STIXCyberObservable):
     user_id: str | None = None
     credential: str | None = None
     account_login: str | None = None
-    account_type: str | None = None  # account-type-ov (open)
+    account_type: Annotated[str, OpenVocab(AccountTypeOv)] | None = None
     display_name: str | None = None
     is_service_account: bool | None = None
     is_privileged: bool | None = None
