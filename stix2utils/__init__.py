@@ -1,3 +1,4 @@
+from stix2utils.marking import MarkingDefinition
 from stix2utils.pattern import (
     ComparisonExpressionNode,
     ExpressionNode,
@@ -51,8 +52,9 @@ from stix2utils.sdo_models import (
     Tool,
     Vulnerability,
 )
+from stix2utils.smo_models import ExtensionDefinition, LanguageContent
 from stix2utils.sro_models import Relationship, Sighting
-from stix2utils.validator import STIX2ValidationResult, STIX2Validator
+from stix2utils.validator import STIX2ValidationResult, STIX2ValidationWarning, STIX2Validator
 
 __all__ = [
     "URL",
@@ -67,6 +69,7 @@ __all__ = [
     "EmailAddress",
     "EmailMessage",
     "ExpressionNode",
+    "ExtensionDefinition",
     "File",
     "Grouping",
     "IPv4Address",
@@ -75,10 +78,12 @@ __all__ = [
     "Indicator",
     "Infrastructure",
     "IntrusionSet",
+    "LanguageContent",
     "Location",
     "MACAddress",
     "Malware",
     "MalwareAnalysis",
+    "MarkingDefinition",
     "Mutex",
     "NetworkTraffic",
     "Note",
@@ -94,6 +99,7 @@ __all__ = [
     "Report",
     "RootExpressionNode",
     "STIX2ValidationResult",
+    "STIX2ValidationWarning",
     "STIX2Validator",
     "Sighting",
     "Software",

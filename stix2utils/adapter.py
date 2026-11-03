@@ -44,6 +44,7 @@ from stix2utils.sdo_models import (
     Tool,
     Vulnerability,
 )
+from stix2utils.smo_models import ExtensionDefinition, LanguageContent
 from stix2utils.sro_models import Relationship, Sighting
 
 STIXObject = (
@@ -86,6 +87,8 @@ STIXObject = (
     | Relationship
     | Sighting
     | MarkingDefinition
+    | ExtensionDefinition
+    | LanguageContent
 )
 
 SDO_SCO_SRO = Annotated[STIXObject, Field(discriminator="type")]

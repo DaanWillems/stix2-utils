@@ -61,4 +61,13 @@ ignore = ["ANN002", "ANN003", "FIX002", "COM812", "UP040"]
 select = ["E", "F", "W", "ANN", "I", "N", "UP", "YTT", "S", "BLE", "FBT", "B", "A", "COM", "C4", "T10", "EM", "EXE", "ISC", "ICN", "LOG", "G", "INP", "PIE", "T20", "PYI", "PT", "RSE", "RET", "SLF", "SIM", "TID", "TCH", "INT", "ARG", "PTH", "TD", "FIX", "ERA", "R", "TRY", "FLY", "PERF", "FURB", "RUF"]
 
 [tool.ruff.lint.flake8-type-checking]
-runtime-evaluated-base-classes = ["pydantic.BaseModel"]
+runtime-evaluated-base-classes = [
+    "pydantic.BaseModel",
+    "stix2utils.common.STIXObjectBase",
+    "stix2utils.common.VersionedObject",
+    "stix2utils.common.PredefinedExtensions",
+    "stix2utils.smo_models._MetaObject",
+    "stix2utils.sdo_models.STIXDomainObject",
+    "stix2utils.sco_models.STIXCyberObservable",
+    "stix2utils.sro_models.STIXRelationshipObject",
+]

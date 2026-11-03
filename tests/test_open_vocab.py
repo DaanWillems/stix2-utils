@@ -28,7 +28,7 @@ BASE_OBJECTS = {
     "intrusion-set": _sdo("intrusion-set", name="set"),
     "location": _sdo("location", region="europe"),
     "malware": _sdo("malware", name="m", is_family=True),
-    "malware-analysis": _sdo("malware-analysis", product="sandbox"),
+    "malware-analysis": _sdo("malware-analysis", product="sandbox", analysis_sco_refs=[f"file--{UUID}"]),
     "report": _sdo("report", name="r", report_types=["campaign"], published=TS, object_refs=[f"indicator--{UUID}"]),
     "threat-actor": _sdo("threat-actor", name="ta", threat_actor_types=["crime-syndicate"]),
     "tool": _sdo("tool", name="t", tool_types=["remote-access"]),

@@ -3,6 +3,9 @@ from typing import Annotated, TypeAlias
 from pydantic import Field
 
 _UUID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+# An object type: a-z, 0-9 and single hyphens. A double hyphen cannot occur
+# inside the type, since '--' separates the type from the UUID in an id.
+_TYPE = r"[a-z0-9]+(?:-[a-z0-9]+)*"
 
 
 def _pattern(*types: str) -> str:
@@ -19,11 +22,10 @@ ObservedDataRef: TypeAlias = Annotated[str, Field(pattern=_pattern("observed-dat
 
 # Multi-type references
 SampleRef: TypeAlias = Annotated[str, Field(pattern=_pattern("file", "artifact"))]  # malware / malware-analysis samples
-IdentityOrLocationRef: TypeAlias = Annotated[str, Field(pattern=_pattern("identity", "location"))]  # malware / malware-analysis samples
-InstalledSoftwareRef: TypeAlias = Annotated[str, Field(pattern=_pattern("software"))]
+IdentityOrLocationRef: TypeAlias = Annotated[str, Field(pattern=_pattern("identity", "location"))]  # sighting where_sighted_refs
 
 # Open reference: any valid STIX object id (SDO / SCO / SRO / SMO)
-AnyRef: TypeAlias = Annotated[str, Field(pattern=_pattern("[a-z0-9-]+"))]
+AnyRef: TypeAlias = Annotated[str, Field(pattern=_pattern(_TYPE))]
 
 
 # Single-type references

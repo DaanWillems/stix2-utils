@@ -3,10 +3,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from stix2utils.adapter import Bundle, stix_toplevel_adapter
-from stix2utils.sco_models import STIXCyberObservable
-from stix2utils.sdo_models import STIXDomainObject
-from stix2utils.sro_models import STIXRelationshipObject
+from stix2utils.adapter import Bundle, STIXObject, stix_toplevel_adapter
 
 
 @dataclass
@@ -22,17 +19,15 @@ class STIX2ValidationWarning:
 @dataclass
 class STIX2ValidationResult:
     is_valid: bool
-    obj: STIXDomainObject | STIXCyberObservable | STIXRelationshipObject | None = None
+    obj: STIXObject | Bundle | None = None
     errors: list[STIX2ValidationError] = field(default_factory=list)
-    warnings: list[STIX2ValidationError] = field(default_factory=list)
+    warnings: list[STIX2ValidationWarning] = field(default_factory=list)
 
 
 class STIX2Validator:
     def validate_entity(self, obj: dict[str, Any]) -> STIX2ValidationResult:
         try:
-            result_object: STIXDomainObject | STIXCyberObservable | STIXRelationshipObject | Bundle = stix_toplevel_adapter.validate_python(
-                obj
-            )
+            result_object: STIXObject | Bundle = stix_toplevel_adapter.validate_python(obj)
         except ValidationError as e:
             stix2_validation_errors = []
 
