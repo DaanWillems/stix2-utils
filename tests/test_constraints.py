@@ -1,4 +1,4 @@
-"""Regression tests for the Pydantic model review fixes."""
+"""Tests for STIX 2.1 constraints: timestamps, identifiers, meta objects and property rules."""
 
 from typing import Any
 
@@ -32,22 +32,22 @@ def warning_text(result: STIX2ValidationResult) -> list[str]:
     return [w.description for w in result.warnings]
 
 
-# --- timestamps -------------------------------------------------------------
+# --- Timestamps -------------------------------------------------------------
 
 
-def test_timestamp_key_orders_fractional_seconds() -> None:
+def test_timestamp_ordering_with_fractional_seconds() -> None:
     assert timestamp_key("2020-01-01T00:00:00Z") < timestamp_key("2020-01-01T00:00:00.5Z")
     assert timestamp_key("2020-01-01T00:00:00.05Z") < timestamp_key("2020-01-01T00:00:00.5Z")
     assert timestamp_key("2020-01-01T00:00:00.5Z") == timestamp_key("2020-01-01T00:00:00.500Z")
     assert timestamp_key("2020-01-01T00:00:00Z") == timestamp_key("2020-01-01T00:00:00.000Z")
 
 
-def test_campaign_fractional_last_seen_is_valid() -> None:
+def test_campaign_last_seen_with_fractional_seconds() -> None:
     result = validate(sdo("campaign", name="c", first_seen="2020-01-01T00:00:00Z", last_seen="2020-01-01T00:00:00.5Z"))
     assert result.is_valid, error_text(result)
 
 
-def test_relationship_fractional_stop_time_is_valid() -> None:
+def test_relationship_stop_time_with_fractional_seconds() -> None:
     result = validate(
         sdo(
             "relationship",
@@ -61,13 +61,13 @@ def test_relationship_fractional_stop_time_is_valid() -> None:
     assert result.is_valid, error_text(result)
 
 
-def test_impossible_date_is_rejected() -> None:
+def test_invalid_calendar_date() -> None:
     result = validate({**sdo("campaign", name="c"), "created": "2020-13-45T99:99:99Z"})
     assert not result.is_valid
     assert "is not a valid date and time" in error_text(result)
 
 
-def test_modified_before_created_is_rejected() -> None:
+def test_modified_before_created() -> None:
     result = validate({**sdo("campaign", name="c"), "created": "2021-01-01T00:00:00Z", "modified": "2020-01-01T00:00:00Z"})
     assert "modified MUST be later than or equal to created" in error_text(result)
 
@@ -80,34 +80,34 @@ def test_modified_before_created_is_rejected() -> None:
         ("malware-analysis", {"product": "p", "result": "malicious", "submitted": "yesterday"}),
     ],
 )
-def test_timestamp_typed_properties(type_: str, props: dict[str, Any]) -> None:
+def test_timestamp_properties_reject_free_text(type_: str, props: dict[str, Any]) -> None:
     assert not validate(sdo(type_, **props)).is_valid
 
 
-def test_indicator_valid_until_equal_to_valid_from_is_rejected() -> None:
+def test_indicator_valid_until_equal_to_valid_from() -> None:
     result = validate(sdo("indicator", pattern="x", pattern_type="stix", valid_from=T, valid_until=T))
     assert "valid_until MUST be greater than valid_from" in error_text(result)
 
 
-def test_network_traffic_end_before_start_is_rejected() -> None:
+def test_network_traffic_end_before_start() -> None:
     result = validate(
         sco("network-traffic", protocols=["tcp"], src_ref=f"ipv4-addr--{UUID}", start="2020-01-02T00:00:00Z", end="2020-01-01T00:00:00Z")
     )
     assert "end MUST be later than or equal to start" in error_text(result)
 
 
-# --- ids --------------------------------------------------------------------
+# --- Identifiers ------------------------------------------------------------
 
 
-def test_malformed_id_is_rejected() -> None:
+def test_id_with_double_hyphen_in_type() -> None:
     assert not validate(sdo("malware", is_family=False, id=f"malware--evil--{UUID}")).is_valid
 
 
-def test_malformed_reference_is_rejected() -> None:
+def test_reference_with_double_hyphen_in_type() -> None:
     assert not validate(sdo("note", content="c", object_refs=[f"malware--evil--{UUID}"])).is_valid
 
 
-# --- valid 2.1 content that used to be rejected -------------------------------
+# --- Optional properties and meta objects -------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -137,7 +137,7 @@ def test_extension_definition() -> None:
     assert result.is_valid, error_text(result)
 
 
-def test_extension_definition_bad_type() -> None:
+def test_extension_definition_unknown_extension_type() -> None:
     result = validate(
         sdo(
             "extension-definition",
@@ -162,7 +162,7 @@ def test_bundle_with_language_content() -> None:
     assert result.is_valid, error_text(result)
 
 
-# --- MUST rules that were not enforced ----------------------------------------
+# --- Property constraints -----------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -188,8 +188,23 @@ def test_bundle_with_language_content() -> None:
         (sco("ipv4-addr", value="999.1.1.1"), "ipv4-addr.value"),
         (sco("ipv6-addr", value="not-an-ip"), "ipv6-addr.value"),
     ],
+    ids=[
+        "location-without-region-country-or-coordinates",
+        "location-latitude-without-longitude",
+        "malware-analysis-without-result-or-sco-refs",
+        "malware-family-without-name",
+        "observed-data-without-object-refs-or-objects",
+        "observed-data-number-observed-zero",
+        "external-reference-with-only-source-name",
+        "granular-marking-without-lang-or-marking-ref",
+        "sdo-extension-key-format",
+        "file-extension-key-format",
+        "hash-key-format",
+        "ipv4-addr-invalid",
+        "ipv6-addr-invalid",
+    ],
 )
-def test_must_rules(obj: dict[str, Any], message: str) -> None:
+def test_constraint_violations(obj: dict[str, Any], message: str) -> None:
     result = validate(obj)
     assert not result.is_valid
     assert message in error_text(result)
