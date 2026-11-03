@@ -66,6 +66,11 @@ IndicatorTypeOv.contains("benign")  # True
 IndicatorTypeOv.__vocab_name__  # "indicator-type-ov"
 ```
 
+### Supported objects
+The validator accepts every STIX 2.1 SDO, SCO and SRO, the Marking Definition, Extension Definition and Language Content meta objects, and Bundles.
+
+Custom objects (types starting with `x-`, deprecated since STIX 2.1 in favour of extension definitions) are not supported: an object with an unknown `type` is reported as invalid, and so is a Bundle that contains one. Custom properties should be added through the `extensions` property, whose keys must be an `extension-definition--<uuid>` id (or a deprecated `x-` name).
+
 ### Pattern parsing
 You can use the STIX 2.1 pattern parser to convert a pattern string into an AST. 
 

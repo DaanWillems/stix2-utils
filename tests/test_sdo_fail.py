@@ -91,7 +91,7 @@ def test_indicator_until_before_from() -> None:
 
     assert not validation_result.is_valid
     assert len(validation_result.errors) == 1
-    assert validation_result.errors[0].description == "indicator: Value error, valid_until cannot be before valid_from [value_error]"
+    assert validation_result.errors[0].description == "indicator: Value error, valid_until MUST be greater than valid_from [value_error]"
 
 
 def test_missing_required_field_id_pattern() -> None:

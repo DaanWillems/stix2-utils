@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import enum
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from stix2utils.common import Timestamp
-from stix2utils.references import _UUID, AnyRef, IdentityRef, MarkingRef, SampleRef, SoftwareRef
+from stix2utils.common import Timestamp, VersionedObject, is_before
+from stix2utils.references import AnyRef, SampleRef, SoftwareRef
 from stix2utils.vocabs import (
     AttackMotivationOv,
     AttackResourceLevelOv,
@@ -28,50 +28,19 @@ from stix2utils.vocabs import (
     ThreatActorSophisticationOv,
     ThreatActorTypeOv,
     ToolTypeOv,
-    open_vocab_warnings,
 )
 
 
-class STIXDomainObject(BaseModel):
+class STIXDomainObject(VersionedObject):
     """Common properties shared by all STIX 2.1 SDOs."""
 
-    model_config = ConfigDict(extra="forbid")
-
-    # Required common properties
-    id: str = Field(..., pattern=rf"^[a-z0-9-]+--{_UUID}$")
-    type: str
-    spec_version: Literal["2.1"] = "2.1"
-    created: Timestamp
-    modified: Timestamp
-
-    # Optional common properties
-    created_by_ref: IdentityRef | None = None
-    revoked: bool | None = None
-    labels: Annotated[list[str], Field(min_length=1)] | None = None
-    confidence: Annotated[int, Field(ge=0, le=100)] | None = None
-    lang: str | None = None
-    external_references: list[dict] | None = None
-    object_marking_refs: Annotated[list[MarkingRef], Field(min_length=1)] | None = None
-    granular_markings: list[dict] | None = None
-    extensions: dict[str, Any] | None = None
-
-    @model_validator(mode="after")
-    def _id_prefix_matches_type(self) -> STIXDomainObject:
-        expected = self.type
-        prefix = self.id.split("--", 1)[0]
-        if prefix != expected:
-            msg = f"id prefix {prefix!r} does not match type {expected!r}"
-            raise ValueError(msg)
-        return self
-
     def should(self) -> list[str]:
-        warnings = open_vocab_warnings(self)
+        warnings = super().should()
         for kill_chain_phase in getattr(self, "kill_chain_phases", None) or []:
             warnings += kill_chain_phase.should()
         return warnings
 
 
-# should
 class KillChainPhase(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -91,7 +60,12 @@ class KillChainPhase(BaseModel):
         return warnings
 
 
-# should
+def _check_seen(first: str | None, last: str | None, first_name: str, last_name: str) -> None:
+    if not is_before(first, last):
+        msg = f"{last_name} cannot be before {first_name}"
+        raise ValueError(msg)
+
+
 class AttackPattern(STIXDomainObject):
     type: Literal["attack-pattern"] = "attack-pattern"
     name: str
@@ -110,10 +84,8 @@ class Campaign(STIXDomainObject):
     objective: str | None = None
 
     @model_validator(mode="after")
-    def _not_last_before_first(self) -> Campaign:
-        if self.last_seen is not None and self.first_seen is not None and self.last_seen < self.first_seen:
-            msg = "last_seen cannot be before first_seen"
-            raise ValueError(msg)
+    def _not_last_before_first(self) -> Self:
+        _check_seen(self.first_seen, self.last_seen, "first_seen", "last_seen")
         return self
 
 
@@ -146,17 +118,17 @@ class Indicator(STIXDomainObject):
     indicator_types: Annotated[list[str], Field(min_length=1), OpenVocab(IndicatorTypeOv)] | None = None
     pattern: str
     pattern_type: Annotated[str, OpenVocab(PatternTypeOv)]
-    valid_from: str
+    valid_from: Timestamp
     name: str | None = None
     description: str | None = None
     pattern_version: str | None = None
-    valid_until: str | None = None
+    valid_until: Timestamp | None = None
     kill_chain_phases: Annotated[list[KillChainPhase], Field(min_length=1)] | None = None
 
     @model_validator(mode="after")
-    def _not_last_before_first(self) -> Campaign:
-        if self.valid_until is not None and self.valid_from is not None and self.valid_until < self.valid_from:
-            msg = "valid_until cannot be before valid_from"
+    def _until_after_from(self) -> Self:
+        if not is_before(self.valid_from, self.valid_until, strict=True):
+            msg = "valid_until MUST be greater than valid_from"
             raise ValueError(msg)
         return self
 
@@ -180,10 +152,8 @@ class Infrastructure(STIXDomainObject):
     last_seen: Timestamp | None = None
 
     @model_validator(mode="after")
-    def _not_last_before_first(self) -> Campaign:
-        if self.last_seen is not None and self.first_seen is not None and self.last_seen < self.first_seen:
-            msg = "last_seen cannot be before first_seen"
-            raise ValueError(msg)
+    def _not_last_before_first(self) -> Self:
+        _check_seen(self.first_seen, self.last_seen, "first_seen", "last_seen")
         return self
 
 
@@ -200,10 +170,8 @@ class IntrusionSet(STIXDomainObject):
     secondary_motivations: Annotated[list[str], Field(min_length=1), OpenVocab(AttackMotivationOv)] | None = None
 
     @model_validator(mode="after")
-    def _not_last_before_first(self) -> Campaign:
-        if self.last_seen is not None and self.first_seen is not None and self.last_seen < self.first_seen:
-            msg = "last_seen cannot be before first_seen"
-            raise ValueError(msg)
+    def _not_last_before_first(self) -> Self:
+        _check_seen(self.first_seen, self.last_seen, "first_seen", "last_seen")
         return self
 
 
@@ -227,18 +195,15 @@ class Location(STIXDomainObject):
     postal_code: str | None = None
 
     @model_validator(mode="after")
-    def _langitude_longitude(self) -> Campaign:
-        if self.latitude is not None and self.longitude is None:
-            msg = "latitude is set but longitude is not set"
-            raise ValueError(msg)
-        if self.longitude is not None and self.latitude is None:
-            msg = "longitude is set but latitude is not set"
+    def _latitude_longitude(self) -> Self:
+        if (self.latitude is None) != (self.longitude is None):
+            msg = "latitude and longitude MUST both be present or both be absent"
             raise ValueError(msg)
         if self.precision is not None and self.latitude is None:
-            msg = "precision is set but latitude is not set"
+            msg = "precision MUST NOT be present unless latitude and longitude are present"
             raise ValueError(msg)
-        if self.precision is not None and self.longitude is None:
-            msg = "precision is set but longitude is not set"
+        if self.region is None and self.country is None and self.latitude is None:
+            msg = "location MUST contain at least one of region, country, or latitude and longitude"
             raise ValueError(msg)
         return self
 
@@ -260,10 +225,11 @@ class Malware(STIXDomainObject):
     sample_refs: Annotated[list[SampleRef], Field(min_length=1)] | None = None
 
     @model_validator(mode="after")
-    def _not_last_before_first(self) -> Campaign:
-        if self.last_seen is not None and self.first_seen is not None and self.last_seen < self.first_seen:
-            msg = "last_seen cannot be before first_seen"
+    def _validate_malware(self) -> Self:
+        if self.is_family and self.name is None:
+            msg = "name MUST be present when is_family is true"
             raise ValueError(msg)
+        _check_seen(self.first_seen, self.last_seen, "first_seen", "last_seen")
         return self
 
 
@@ -273,18 +239,26 @@ class MalwareAnalysis(STIXDomainObject):
     version: str | None = None
     host_vm_ref: SoftwareRef | None = None
     operating_system_ref: SoftwareRef | None = None
-    installed_software_refs: list[SoftwareRef] | None = None
+    installed_software_refs: Annotated[list[SoftwareRef], Field(min_length=1)] | None = None
     configuration_version: str | None = None
     modules: Annotated[list[str], Field(min_length=1)] | None = None
     analysis_engine_version: str | None = None
     analysis_definition_version: str | None = None
-    submitted: str | None = None
-    analysis_started: str | None = None
-    analysis_ended: str | None = None
+    submitted: Timestamp | None = None
+    analysis_started: Timestamp | None = None
+    analysis_ended: Timestamp | None = None
     result_name: str | None = None
     result: Annotated[str, OpenVocab(MalwareResultOv)] | None = None
     analysis_sco_refs: Annotated[list[AnyRef], Field(min_length=1)] | None = None
     sample_ref: SampleRef | None = None
+
+    @model_validator(mode="after")
+    def _validate_analysis(self) -> Self:
+        if self.result is None and self.analysis_sco_refs is None:
+            msg = "malware analysis MUST contain at least one of result or analysis_sco_refs"
+            raise ValueError(msg)
+        _check_seen(self.analysis_started, self.analysis_ended, "analysis_started", "analysis_ended")
+        return self
 
 
 class Note(STIXDomainObject):
@@ -299,14 +273,15 @@ class ObservedData(STIXDomainObject):
     type: Literal["observed-data"] = "observed-data"
     first_observed: Timestamp
     last_observed: Timestamp
-    number_observed: int
+    number_observed: Annotated[int, Field(ge=1, le=999_999_999)]
     object_refs: Annotated[list[AnyRef], Field(min_length=1)] | None = None
-    objects: dict | None = None  # deprecated in 2.1 in favor of object_refs
+    objects: Annotated[dict[str, Any], Field(min_length=1)] | None = None  # deprecated in 2.1 in favor of object_refs
 
     @model_validator(mode="after")
-    def _not_last_before_first(self) -> Campaign:
-        if self.last_observed is not None and self.first_observed is not None and self.last_observed < self.first_observed:
-            msg = "last_observed cannot be before first_observed"
+    def _validate_observed_data(self) -> Self:
+        _check_seen(self.first_observed, self.last_observed, "first_observed", "last_observed")
+        if (self.object_refs is None) == (self.objects is None):
+            msg = "observed data MUST contain exactly one of object_refs or objects"
             raise ValueError(msg)
         return self
 
@@ -330,8 +305,8 @@ class Opinion(STIXDomainObject):
 class Report(STIXDomainObject):
     type: Literal["report"] = "report"
     name: str
-    report_types: Annotated[list[str], Field(min_length=1), OpenVocab(ReportTypeOv)]
-    published: str
+    report_types: Annotated[list[str], Field(min_length=1), OpenVocab(ReportTypeOv)] | None = None
+    published: Timestamp
     object_refs: Annotated[list[AnyRef], Field(min_length=1)]
     description: str | None = None
 
@@ -339,7 +314,7 @@ class Report(STIXDomainObject):
 class ThreatActor(STIXDomainObject):
     type: Literal["threat-actor"] = "threat-actor"
     name: str
-    threat_actor_types: Annotated[list[str], Field(min_length=1), OpenVocab(ThreatActorTypeOv)]
+    threat_actor_types: Annotated[list[str], Field(min_length=1), OpenVocab(ThreatActorTypeOv)] | None = None
     description: str | None = None
     aliases: Annotated[list[str], Field(min_length=1)] | None = None
     first_seen: Timestamp | None = None
@@ -353,20 +328,18 @@ class ThreatActor(STIXDomainObject):
     personal_motivations: Annotated[list[str], Field(min_length=1), OpenVocab(AttackMotivationOv)] | None = None
 
     @model_validator(mode="after")
-    def _not_last_before_first(self) -> Campaign:
-        if self.last_seen is not None and self.first_seen is not None and self.last_seen < self.first_seen:
-            msg = "last_seen cannot be before first_seen"
-            raise ValueError(msg)
+    def _not_last_before_first(self) -> Self:
+        _check_seen(self.first_seen, self.last_seen, "first_seen", "last_seen")
         return self
 
 
 class Tool(STIXDomainObject):
     type: Literal["tool"] = "tool"
     name: str
-    tool_types: Annotated[list[str], Field(min_length=1), OpenVocab(ToolTypeOv)]
+    tool_types: Annotated[list[str], Field(min_length=1), OpenVocab(ToolTypeOv)] | None = None
     description: str | None = None
     aliases: Annotated[list[str], Field(min_length=1)] | None = None
-    kill_chain_phases: list[KillChainPhase] | None = None
+    kill_chain_phases: Annotated[list[KillChainPhase], Field(min_length=1)] | None = None
     tool_version: str | None = None
 
 

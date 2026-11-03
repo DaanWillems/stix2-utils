@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 
-from stix2utils.common import SCO_TYPES, SDO_TYPES, Timestamp
-from stix2utils.references import _UUID, AnyRef, IdentityOrLocationRef, IdentityRef, MarkingRef, ObservedDataRef
-from stix2utils.vocabs import open_vocab_warnings
+from stix2utils.common import SCO_TYPES, SDO_TYPES, Timestamp, VersionedObject, is_before
+from stix2utils.references import AnyRef, IdentityOrLocationRef, ObservedDataRef
 
 # relationship_type: ASCII a-z, 0-9, hyphen; no leading/trailing/double hyphen.
 _RELATIONSHIP_TYPE_RE = r"^[a-z0-9]+(-[a-z0-9]+)*$"
@@ -208,38 +207,8 @@ def check_relationship_endpoints(source_ref: str, target_ref: str, relationship_
 # ---------------------------------------------------------------------------
 
 
-class STIXRelationshipObject(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    # Required common properties
-    id: str = Field(..., pattern=rf"^[a-z0-9-]+--{_UUID}$")
-    type: str
-    spec_version: Literal["2.1"] = "2.1"
-    created: Timestamp
-    modified: Timestamp
-
-    # Optional common properties
-    created_by_ref: IdentityRef | None = None
-    revoked: bool | None = None
-    labels: Annotated[list[str], Field(min_length=1)] | None = None
-    confidence: Annotated[int, Field(ge=0, le=100)] | None = None
-    lang: str | None = None
-    external_references: list[dict] | None = None
-    object_marking_refs: Annotated[list[MarkingRef], Field(min_length=1)] | None = None
-    granular_markings: list[dict] | None = None
-    extensions: dict | None = None
-
-    @model_validator(mode="after")
-    def _id_prefix_matches_type(self) -> STIXRelationshipObject:
-        expected = self.type
-        prefix = self.id.split("--", 1)[0]
-        if prefix != expected:
-            msg = f"id prefix {prefix!r} does not match type {expected!r}"
-            raise ValueError(msg)
-        return self
-
-    def should(self) -> list[str]:
-        return open_vocab_warnings(self)
+class STIXRelationshipObject(VersionedObject):
+    """Common properties shared by all STIX 2.1 SROs."""
 
 
 class Relationship(STIXRelationshipObject):
@@ -252,8 +221,8 @@ class Relationship(STIXRelationshipObject):
     stop_time: Timestamp | None = None
 
     @model_validator(mode="after")
-    def _validate_relationship(self) -> Relationship:
-        if self.start_time is not None and self.stop_time is not None and self.stop_time <= self.start_time:
+    def _validate_relationship(self) -> Self:
+        if not is_before(self.start_time, self.stop_time, strict=True):
             msg = "stop_time MUST be later than start_time"
             raise ValueError(msg)
 
@@ -275,14 +244,14 @@ class Sighting(STIXRelationshipObject):
     summary: bool | None = None
 
     @model_validator(mode="after")
-    def _validate_sighting(self) -> Sighting:
+    def _validate_sighting(self) -> Self:
         # sighting_of_ref MUST reference only an SDO.
         sighted = _prefix(self.sighting_of_ref)
         if sighted not in SDO_TYPES:
             msg = f"sighting_of_ref must reference an SDO, not a {sighted!r} object"
             raise ValueError(msg)
 
-        if self.first_seen is not None and self.last_seen is not None and self.last_seen < self.first_seen:
+        if not is_before(self.first_seen, self.last_seen):
             msg = "last_seen MUST be greater than or equal to first_seen"
             raise ValueError(msg)
         return self

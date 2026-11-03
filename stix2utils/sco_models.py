@@ -1,13 +1,22 @@
 from __future__ import annotations
 
 import enum
-from typing import Annotated, Literal
+import ipaddress
+from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
 
-from stix2utils.common import Hashes, Hex, Timestamp
+from stix2utils.common import (
+    Extensions,
+    GranularMarking,
+    Hashes,
+    Hex,
+    PredefinedExtensions,
+    STIXObjectBase,
+    Timestamp,
+    is_before,
+)
 from stix2utils.references import (
-    _UUID,
     AnyRef,
     ArtifactRef,
     DirectoryContainsRef,
@@ -25,40 +34,22 @@ from stix2utils.references import (
     ProcessRef,
     UserAccountRef,
 )
-from stix2utils.vocabs import AccountTypeOv, OpenVocab, WindowsPEBinaryTypeOv, open_vocab_warnings
+from stix2utils.vocabs import AccountTypeOv, OpenVocab, WindowsPEBinaryTypeOv
 
 
-class STIXCyberObservable(BaseModel):
+class STIXCyberObservable(STIXObjectBase):
     """Common properties shared by all STIX 2.1 SCOs.
 
     Unlike SDOs, SCOs are not versioned: they do not carry created, modified,
     created_by_ref, revoked, labels, confidence, lang, or external_references.
     """
 
-    model_config = ConfigDict(extra="forbid")
-
-    # Required common properties
-    id: str = Field(..., pattern=rf"^[a-z0-9-]+--{_UUID}$")
-    type: str
-
     # Optional common properties
     spec_version: Literal["2.1"] | None = "2.1"
     object_marking_refs: Annotated[list[MarkingRef], Field(min_length=1)] | None = None
-    granular_markings: list[dict] | None = None
+    granular_markings: Annotated[list[GranularMarking], Field(min_length=1)] | None = None
     defanged: bool | None = None
-    extensions: dict | None = None
-
-    @model_validator(mode="after")
-    def _id_prefix_matches_type(self) -> STIXCyberObservable:
-        expected = self.type
-        prefix = self.id.split("--", 1)[0]
-        if prefix != expected:
-            msg = f"id prefix {prefix!r} does not match type {expected!r}"
-            raise ValueError(msg)
-        return self
-
-    def should(self) -> list[str]:
-        return open_vocab_warnings(self)
+    extensions: Extensions | None = None
 
 
 class EncryptionAlgorithm(enum.StrEnum):
@@ -77,15 +68,12 @@ class Artifact(STIXCyberObservable):
     decryption_key: str | None = None
 
     @model_validator(mode="after")
-    def _check_payload_or_url(self) -> Artifact:
+    def _check_payload_or_url(self) -> Self:
         if bool(self.payload_bin) == bool(self.url):
             msg = "exactly one of payload_bin or url MUST be provided"
             raise ValueError(msg)
         if self.url and not self.hashes:
             msg = "hashes MUST be present when url is present"
-            raise ValueError(msg)
-        if self.payload_bin and self.url:
-            msg = "payload_bin MUST NOT be present if url is provided"
             raise ValueError(msg)
         if self.decryption_key and not self.encryption_algorithm:
             msg = "decryption_key MUST NOT be present when encryption_algorithm is absent"
@@ -132,7 +120,7 @@ class EmailMIMEComponent(BaseModel):
     content_disposition: str | None = None
 
     @model_validator(mode="after")
-    def _check_body_or_raw(self) -> EmailMIMEComponent:
+    def _check_body_or_raw(self) -> Self:
         if not self.body and not self.body_raw_ref:
             msg = "one of body or body_raw_ref MUST be included"
             raise ValueError(msg)
@@ -158,7 +146,7 @@ class EmailMessage(STIXCyberObservable):
     raw_email_ref: ArtifactRef | None = None
 
     @model_validator(mode="after")
-    def _check_multipart(self) -> EmailMessage:
+    def _check_multipart(self) -> Self:
         if self.is_multipart and self.body is not None:
             msg = "body MUST NOT be used if is_multipart is true"
             raise ValueError(msg)
@@ -183,7 +171,7 @@ class NTFSExt(BaseModel):
     alternate_data_streams: Annotated[list[AlternateDataStream], Field(min_length=1)] | None = None
 
     @model_validator(mode="after")
-    def _at_least_one(self) -> NTFSExt:
+    def _at_least_one(self) -> Self:
         if not any(v is not None for v in (self.sid, self.alternate_data_streams)):
             msg = "NTFS extension MUST contain at least one property"
             raise ValueError(msg)
@@ -200,7 +188,7 @@ class PDFExt(BaseModel):
     pdfid1: str | None = None
 
     @model_validator(mode="after")
-    def _at_least_one(self) -> PDFExt:
+    def _at_least_one(self) -> Self:
         if not any(
             v is not None
             for v in (
@@ -225,7 +213,7 @@ class RasterImageExt(BaseModel):
     exif_tags: dict | None = None
 
     @model_validator(mode="after")
-    def _at_least_one(self) -> RasterImageExt:
+    def _at_least_one(self) -> Self:
         if not any(
             v is not None
             for v in (
@@ -283,7 +271,7 @@ class WindowsPEOptionalHeaderType(BaseModel):
     hashes: Hashes | None = None
 
     @model_validator(mode="after")
-    def _at_least_one(self) -> WindowsPEOptionalHeaderType:
+    def _at_least_one(self) -> Self:
         if not any(v is not None for v in self.__dict__.values()):
             msg = "PE optional header MUST contain at least one property"
             raise ValueError(msg)
@@ -316,10 +304,8 @@ class WindowsPEBinaryExt(BaseModel):
     sections: Annotated[list[WindowsPESectionType], Field(min_length=1)] | None = None
 
 
-class FileExtensions(BaseModel):
+class FileExtensions(PredefinedExtensions):
     """Predefined File object extensions."""
-
-    model_config = ConfigDict(extra="allow")  # allow custom / extension-definition keys
 
     ntfs_ext: NTFSExt | None = Field(default=None, alias="ntfs-ext")
     raster_image_ext: RasterImageExt | None = Field(default=None, alias="raster-image-ext")
@@ -345,7 +331,7 @@ class File(STIXCyberObservable):
     extensions: FileExtensions | None = None
 
     @model_validator(mode="after")
-    def _hashes_or_name(self) -> File:
+    def _hashes_or_name(self) -> Self:
         if not self.hashes and not self.name:
             msg = "File object MUST contain at least one of hashes or name"
             raise ValueError(msg)
@@ -357,9 +343,19 @@ class File(STIXCyberObservable):
 # ---------------------------------------------------------------------------
 
 
+def _check_ipv4(value: str) -> str:
+    ipaddress.IPv4Network(value, strict=False)  # raises ValueError (AddressValueError/NetmaskValueError)
+    return value
+
+
+def _check_ipv6(value: str) -> str:
+    ipaddress.IPv6Network(value, strict=False)
+    return value
+
+
 class IPv4Address(STIXCyberObservable):
     type: Literal["ipv4-addr"] = "ipv4-addr"
-    value: str
+    value: Annotated[str, AfterValidator(_check_ipv4)]  # single address or CIDR block
     resolves_to_refs: Annotated[list[IPResolvesToRef], Field(min_length=1)] | None = None
     belongs_to_refs: Annotated[list[IPBelongsToRef], Field(min_length=1)] | None = None
 
@@ -371,7 +367,7 @@ class IPv4Address(STIXCyberObservable):
 
 class IPv6Address(STIXCyberObservable):
     type: Literal["ipv6-addr"] = "ipv6-addr"
-    value: str
+    value: Annotated[str, AfterValidator(_check_ipv6)]  # single address or CIDR block
     resolves_to_refs: Annotated[list[IPResolvesToRef], Field(min_length=1)] | None = None
     belongs_to_refs: Annotated[list[IPBelongsToRef], Field(min_length=1)] | None = None
 
@@ -460,16 +456,14 @@ class TCPExt(BaseModel):
     dst_flags_hex: Hex | None = None
 
     @model_validator(mode="after")
-    def _at_least_one(self) -> TCPExt:
+    def _at_least_one(self) -> Self:
         if self.src_flags_hex is None and self.dst_flags_hex is None:
             msg = "TCP extension MUST contain at least one property"
             raise ValueError(msg)
         return self
 
 
-class NetworkTrafficExtensions(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
+class NetworkTrafficExtensions(PredefinedExtensions):
     http_request_ext: HTTPRequestExt | None = Field(default=None, alias="http-request-ext")
     tcp_ext: TCPExt | None = Field(default=None, alias="tcp-ext")
     icmp_ext: ICMPExt | None = Field(default=None, alias="icmp-ext")
@@ -498,12 +492,15 @@ class NetworkTraffic(STIXCyberObservable):
     extensions: NetworkTrafficExtensions | None = None
 
     @model_validator(mode="after")
-    def _src_or_dst(self) -> NetworkTraffic:
+    def _src_or_dst(self) -> Self:
         if self.src_ref is None and self.dst_ref is None:
             msg = "Network Traffic MUST contain at least one of src_ref or dst_ref"
             raise ValueError(msg)
         if self.is_active is True and self.end is not None:
             msg = "end MUST NOT be included if is_active is true (and is_active MUST be false if end is provided)"
+            raise ValueError(msg)
+        if not is_before(self.start, self.end):
+            msg = "end MUST be later than or equal to start"
             raise ValueError(msg)
         return self
 
@@ -527,7 +524,7 @@ class WindowsProcessExt(BaseModel):
     integrity_level: WindowsIntegrityLevel | None = None
 
     @model_validator(mode="after")
-    def _at_least_one(self) -> WindowsProcessExt:
+    def _at_least_one(self) -> Self:
         if not any(v is not None for v in self.__dict__.values()):
             msg = "Windows process extension MUST contain at least one property"
             raise ValueError(msg)
@@ -572,16 +569,14 @@ class WindowsServiceExt(BaseModel):
     service_status: WindowsServiceStatus | None = None
 
     @model_validator(mode="after")
-    def _at_least_one(self) -> WindowsServiceExt:
+    def _at_least_one(self) -> Self:
         if not any(v is not None for v in self.__dict__.values()):
             msg = "Windows service extension MUST contain at least one property"
             raise ValueError(msg)
         return self
 
 
-class ProcessExtensions(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
+class ProcessExtensions(PredefinedExtensions):
     windows_process_ext: WindowsProcessExt | None = Field(default=None, alias="windows-process-ext")
     windows_service_ext: WindowsServiceExt | None = Field(default=None, alias="windows-service-ext")
 
@@ -602,7 +597,7 @@ class Process(STIXCyberObservable):
     extensions: ProcessExtensions | None = None
 
     @model_validator(mode="after")
-    def _at_least_one_property(self) -> Process:
+    def _at_least_one_property(self) -> Self:
         specific = (
             self.is_hidden,
             self.pid,
@@ -647,16 +642,14 @@ class UNIXAccountExt(BaseModel):
     shell: str | None = None
 
     @model_validator(mode="after")
-    def _at_least_one(self) -> UNIXAccountExt:
+    def _at_least_one(self) -> Self:
         if not any(v is not None for v in self.__dict__.values()):
             msg = "UNIX account extension MUST contain at least one property"
             raise ValueError(msg)
         return self
 
 
-class UserAccountExtensions(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
+class UserAccountExtensions(PredefinedExtensions):
     unix_account_ext: UNIXAccountExt | None = Field(default=None, alias="unix-account-ext")
 
 
@@ -679,7 +672,7 @@ class UserAccount(STIXCyberObservable):
     extensions: UserAccountExtensions | None = None
 
     @model_validator(mode="after")
-    def _at_least_one_property(self) -> UserAccount:
+    def _at_least_one_property(self) -> Self:
         specific = (
             self.user_id,
             self.credential,
@@ -728,7 +721,7 @@ class WindowsRegistryValueType(BaseModel):
     data_type: WindowsRegistryDatatype | None = None
 
     @model_validator(mode="after")
-    def _at_least_one(self) -> WindowsRegistryValueType:
+    def _at_least_one(self) -> Self:
         if not any(v is not None for v in self.__dict__.values()):
             msg = "Windows registry value type MUST contain at least one property"
             raise ValueError(msg)
@@ -744,7 +737,7 @@ class WindowsRegistryKey(STIXCyberObservable):
     number_of_subkeys: int | None = None
 
     @model_validator(mode="after")
-    def _at_least_one_property(self) -> WindowsRegistryKey:
+    def _at_least_one_property(self) -> Self:
         specific = (
             self.key,
             self.values,
@@ -779,7 +772,7 @@ class X509V3ExtensionsType(BaseModel):
     policy_mappings: str | None = None
 
     @model_validator(mode="after")
-    def _at_least_one(self) -> X509V3ExtensionsType:
+    def _at_least_one(self) -> Self:
         if not any(v is not None for v in self.__dict__.values()):
             msg = "X.509 v3 extensions type MUST contain at least one property"
             raise ValueError(msg)
@@ -803,7 +796,7 @@ class X509Certificate(STIXCyberObservable):
     x509_v3_extensions: X509V3ExtensionsType | None = None
 
     @model_validator(mode="after")
-    def _at_least_one_property(self) -> X509Certificate:
+    def _at_least_one_property(self) -> Self:
         specific = (
             self.is_self_signed,
             self.hashes,
