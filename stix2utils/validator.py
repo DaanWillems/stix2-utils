@@ -66,9 +66,11 @@ class STIX2Validator:
 
     def validate_entity(self, obj: dict[str, Any]) -> STIX2ValidationResult:
         try:
-            result_object: STIXObject | Bundle = stix_toplevel_adapter.validate_python(
-                obj, extra="allow" if self.allow_custom else "forbid"
-            )
+            # Only override the models' own ``extra`` setting when custom properties are
+            # allowed. Passing extra="forbid" otherwise would also override models that
+            # accept extra keys by design, such as the extension-definition keys of
+            # PredefinedExtensions.
+            result_object: STIXObject | Bundle = stix_toplevel_adapter.validate_python(obj, extra="allow" if self.allow_custom else None)
         except ValidationError as e:
             stix2_validation_errors = []
 

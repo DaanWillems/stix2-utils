@@ -1,3 +1,5 @@
+import pytest
+
 from stix2utils.sdo_models import AttackPattern
 from stix2utils.validator import STIX2Validator
 
@@ -118,3 +120,33 @@ def test_allow_custom_still_reports_other_errors() -> None:
 
     assert not validation_result.is_valid
     assert validation_result.errors[0].description == "attack-pattern.name: Field required [missing]"
+
+
+FILE_WITH_EXTENSIONS = {
+    "type": "file",
+    "spec_version": "2.1",
+    "id": "file--66156fad-2a7d-5237-bbb4-ba1912887cfe",
+    "name": "foo.exe",
+    "extensions": {
+        "ntfs-ext": {"sid": "1"},
+        "extension-definition--d83fce45-ef58-4c6c-a3f4-1fbc32e98c6e": {"extension_type": "property-extension", "rank": 5},
+    },
+}
+
+
+@pytest.mark.parametrize("allow_custom", [False, True])
+def test_extension_definition_keys_are_accepted_in_both_modes(allow_custom) -> None:
+    validation_result = STIX2Validator(allow_custom=allow_custom).validate_entity(FILE_WITH_EXTENSIONS)
+
+    assert validation_result.is_valid, validation_result.errors
+    assert warning_descriptions(validation_result) == []
+
+
+@pytest.mark.parametrize("allow_custom", [False, True])
+def test_misspelled_predefined_extension_is_rejected_in_both_modes(allow_custom) -> None:
+    obj = {**FILE_WITH_EXTENSIONS, "extensions": {"ntfs_ext": {"sid": "1"}}}
+
+    validation_result = STIX2Validator(allow_custom=allow_custom).validate_entity(obj)
+
+    assert not validation_result.is_valid
+    assert "must be an extension-definition id" in validation_result.errors[0].description
